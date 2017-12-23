@@ -18,17 +18,23 @@ public class Main {
                         GenericReader.init("/data1.csv",
                                 0,
                                 (metaData, numOfClasses) -> GenericReader.createTuple(metaData)).toArray(new Tuple[0]),
-                0.66);
+                        0.66);
 
         Tuple[] trainingSet = SetStarter.getTrainingSet();
         Tuple[] testingSet = SetStarter.getTestingSet();
 
-        for (int i = 0; i < testingSet.length; i++) {
-            KNN knn = new KNN(27, 2, 1.0, 1.0);
-            System.out.println(knn.init(trainingSet, testingSet[i]));
-            System.out.println(knn.getAccuracy());
+        for (int i = 0; i < trainingSet.length; i++) {
+            trainingSet[i].setWeight(1.0 / (double) trainingSet.length);
         }
 
+        KNN knn = new KNN(127, 2, 1.0, 1.0);
+        for (int i = 0; i < trainingSet.length; i++) {
+            System.out.println("Class: output " + knn.init(trainingSet, trainingSet[i]) + " yi:" + trainingSet[i].getClassNum());
+            System.out.println("Accuracy: " + knn.getAccuracy());
+
+        }
+
+        System.out.println((double) knn.getCountCurrect() / trainingSet.length);
     }
 
 }

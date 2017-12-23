@@ -25,6 +25,8 @@ public class KNN {
     private double xWeight;
     private double yWeight;
 
+    private int countCurrect;
+
     //TODO change weights to num of classes
     public KNN(int k, int numofClasses, double xWeight, double yWeight) {
         this.k = new Tuple[k];
@@ -40,7 +42,8 @@ public class KNN {
     }
 
     public int init(Tuple[] testingSet, Tuple newObservation) {
-
+        distances.clear();
+        classes = new int[classes.length];
         for (int i = 0; i < testingSet.length; i++) {
             testingSet[i].setDistance(0);
         }
@@ -51,7 +54,10 @@ public class KNN {
                 for (int i = 0; i < old.getDataVector().length; i++) {
                     sum += (old.getDataVector()[i] * xWeight - newObs.getDataVector()[i] * yWeight) * (old.getDataVector()[i] * xWeight - newObs.getDataVector()[i] * yWeight);
                 }
-                old.setDistance(Math.sqrt(sum));
+                /**
+                 * setting the distance according to the weight of the sample
+                 */
+                old.setDistance(Math.sqrt(sum) * old.getWeight());
             }
         });
 
@@ -79,7 +85,6 @@ public class KNN {
         int max = 0;
         int index = 0;
         for (int i = 1; i < classes.length; i++) {
-
             if (classes[i] > max) {
 
                 max = classes[i];
@@ -87,6 +92,9 @@ public class KNN {
             }
         }
         accuracy = ((double) classes[index]) / k_size;
+        if (newObservation.getClassNum() == index) {
+            countCurrect++;
+        }
         return index;
     }
 
@@ -94,6 +102,11 @@ public class KNN {
         euclideanDistanceToAll.measure(observations, newObservation);
 
     }
+
+
+
+
+
 
     public double getAccuracy() {
         return accuracy;
@@ -110,8 +123,14 @@ public class KNN {
         return k_size == knn.k_size;
     }
 
+
+    public int getCountCurrect() {
+        return countCurrect;
+    }
+
     @Override
     public int hashCode() {
         return k_size;
     }
+
 }

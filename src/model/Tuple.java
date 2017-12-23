@@ -7,6 +7,9 @@ public class Tuple {
     private double[] dataVector;
     private boolean selected;
     private int classNum;
+    private double weight;
+
+
     /**
      * distance from current new observation.
      */
@@ -53,6 +56,14 @@ public class Tuple {
 
     public void setDistance(double distance) {
         this.distance = distance;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
     }
 
     @Override

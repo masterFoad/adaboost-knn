@@ -2,10 +2,9 @@
 //
 //public class ADABOOST {
 //
-//    private WeightedClassifier[] classifiers;
 //
 //
-//    public ADABOOST(KNN[] classifiers) {
+//    public ADABOOST(KNN[] classifiers, Tuple[] tuples) {
 //        for (int i = 0; i < classifiers.length; i++) {
 //
 //        }

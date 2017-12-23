@@ -63,11 +63,11 @@ public class GenericReader {
     }
 
     public static KNN createClassifier(String[] metadata, int numOfClasses) {
-        int randomK = ThreadLocalRandom.current().nextInt(1, 127);
-        if (randomK % 2 == 0) {
-            randomK++;
-        }
-        return new KNN(randomK, numOfClasses, Double.parseDouble(metadata[0]), Double.parseDouble(metadata[1]));
+//        int randomK = ThreadLocalRandom.current().nextInt(1, 15);
+//        if (randomK % 2 == 0) {
+//            randomK++;
+//        }
+        return new KNN(3, numOfClasses, Double.parseDouble(metadata[0]), Double.parseDouble(metadata[1]));
     }
 
     public static Tuple createTuple(String[] metadata) {
