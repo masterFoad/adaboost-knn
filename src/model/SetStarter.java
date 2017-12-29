@@ -7,9 +7,17 @@ public class SetStarter {
 
     private static Tuple[] trainingSet;
     private static Tuple[] testingSet;
+    private static KNN[] weakClassifiers;
+
+
+    public static void initKNNs(KNN[] knns){
+
+            weakClassifiers = knns;
+
+    }
 
     public static void divide(Tuple[] tups, double divisionPercent) {
-        Collections.shuffle(Arrays.asList(tups));
+        //Collections.shuffle(Arrays.asList(tups));
         int dividor = (int) (tups.length * divisionPercent);
         //TODO check if the division percent works
 
@@ -32,5 +40,9 @@ public class SetStarter {
 
     public static Tuple[] getTestingSet() {
         return testingSet;
+    }
+
+    public static KNN[] getWeakClassifiers() {
+        return weakClassifiers;
     }
 }

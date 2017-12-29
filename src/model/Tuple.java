@@ -2,10 +2,10 @@ package model;
 
 import java.util.Arrays;
 
-public class Tuple {
+public class Tuple implements Comparable<Tuple>{
 
     private double[] dataVector;
-    private boolean selected;
+    private boolean isCorrectlyClassified;
     private int classNum;
     private double weight;
 
@@ -16,7 +16,7 @@ public class Tuple {
     private double distance;
 
 
-    public Tuple(int dim){
+    public Tuple(int dim) {
         dataVector = new double[dim];
     }
 
@@ -29,17 +29,8 @@ public class Tuple {
         return dataVector;
     }
 
-    public void addPoint(double p){
-        this.dataVector[this.dataVector.length-1]=p;
-    }
-
-
-    public void setSelected(boolean selected) {
-        this.selected = selected;
-    }
-
-    public boolean isSelected(){
-        return selected;
+    public void addPoint(double p) {
+        this.dataVector[this.dataVector.length - 1] = p;
     }
 
     public int getClassNum() {
@@ -66,12 +57,47 @@ public class Tuple {
         this.weight = weight;
     }
 
+    public boolean isCorrectlyClassified() {
+        return isCorrectlyClassified;
+    }
+
+    public void setCorrectlyClassified(boolean correctlyClassified) {
+        isCorrectlyClassified = correctlyClassified;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Tuple)) return false;
+
+        Tuple tuple = (Tuple) o;
+
+        return Arrays.equals(dataVector, tuple.dataVector);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(dataVector);
+    }
+
     @Override
     public String toString() {
         return "Tuple{" +
                 "dataVector=" + Arrays.toString(dataVector) +
-                ", selected=" + selected +
+                ", isCorrectlyClassified=" + isCorrectlyClassified +
                 ", classNum=" + classNum +
+                ", weight=" + weight +
+                ", distance=" + distance +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Tuple o) {
+        if(this.distance<o.distance)
+            return -1;
+        else if(o.distance<this.distance)
+            return 1;
+        return 0;
     }
 }

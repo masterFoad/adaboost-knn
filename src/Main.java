@@ -1,17 +1,24 @@
 import common.GenericReader;
+import model.ADABOOST;
 import model.KNN;
 import model.SetStarter;
 import model.Tuple;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class Main {
 
-    public static void main(String args[]) {
+
+    public static void main(String args[]) throws InterruptedException {
 
 
-//        GenericReader.init("/data1.csv", 2, (metaData, numOfClasses) -> GenericReader.createClassifier(metaData, numOfClasses));
-//        GenericReader.init("/data1.csv", 0, (metaData, numOfClasses) -> GenericReader.createTuple(metaData));
+
+      //  ArrayList<KNN> knn = GenericReader.buildModel(KNN.class,"/data1.csv", 2, (metaData, numOfClasses) -> GenericReader.createClassifier(metaData, numOfClasses));
+//        GenericReader.buildModel("/data1.csv", 0, (metaData, numOfClasses) -> GenericReader.createTuple(metaData));
 
 
+        SetStarter.initKNNs(GenericReader.init("/data1.csv", 2, (metaData, numOfClasses) -> GenericReader.createClassifier(metaData, numOfClasses)).toArray(new KNN[0]));
         // reading the data from csv
         SetStarter
                 .divide(
@@ -22,19 +29,38 @@ public class Main {
 
         Tuple[] trainingSet = SetStarter.getTrainingSet();
         Tuple[] testingSet = SetStarter.getTestingSet();
-
+//
         for (int i = 0; i < trainingSet.length; i++) {
             trainingSet[i].setWeight(1.0 / (double) trainingSet.length);
         }
+//
+//        KNN knn = new KNN(5, 2, 1.0, 1.0);
+//        for (int i = 0; i < trainingSet.length; i++) {
+//            System.out.println("Class: output " + knn.buildModel(trainingSet, trainingSet[i]) + " yi:" + trainingSet[i].getClassNum());
+//            System.out.println("Accuracy: " + knn.getAccuracy());
+//
+//        }
+//
+//        System.out.println(((double) knn.getCountCurrect() / trainingSet.length)+knn.getErrorRate());
 
-        KNN knn = new KNN(127, 2, 1.0, 1.0);
-        for (int i = 0; i < trainingSet.length; i++) {
-            System.out.println("Class: output " + knn.init(trainingSet, trainingSet[i]) + " yi:" + trainingSet[i].getClassNum());
-            System.out.println("Accuracy: " + knn.getAccuracy());
 
-        }
+        long startTime = System.currentTimeMillis();
+        ADABOOST superClassifier = new ADABOOST(
+                new ArrayList<>(Arrays.asList(SetStarter.getWeakClassifiers())),
+                trainingSet);
 
-        System.out.println((double) knn.getCountCurrect() / trainingSet.length);
+        superClassifier.buildModel();
+        testingSet[3].setWeight(1);
+        System.out.println(testingSet[3].toString());
+        //superClassifier.checkNewPoint(testingSet[3]);
+        long endTime   = System.currentTimeMillis();
+        long totalTime = endTime - startTime;
+        System.out.println(totalTime);
+
+
+
+
+
+
     }
-
 }
