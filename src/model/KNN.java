@@ -1,6 +1,7 @@
 package model;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class KNN {
 
@@ -12,7 +13,7 @@ public class KNN {
     /**
      * this list will hold the distances, the index of the element will be the same index in the trainingSet
      */
-    private Tuple[] distances;
+    //private Tuple[] distances;
 
     private double alpha;
 
@@ -42,13 +43,12 @@ public class KNN {
         this.yWeight = yWeight;
     }
 
-    public double init(Tuple[] testingSet, Tuple newObservation) {
-        this.distances = new Tuple[testingSet.length];
-        classes = new int[classes.length];
-        for (int i = 0; i < testingSet.length; i++) {
-            testingSet[i].setDistance(0);
-        }
+    public synchronized double init(Tuple[] testingSet, Tuple newObservation) {
+        TupleDistance[] distances = new TupleDistance[testingSet.length-1];
+        int[] classes = new int[this.classes.length];
 
+
+        AtomicInteger atomicInteger = new AtomicInteger(0);
         distance(testingSet, newObservation, (training, newObs) -> Arrays.stream(training).filter(old->!old.equals(newObs)).forEach(
                 old -> {
                     //System.out.println("setting up distances");
@@ -63,25 +63,27 @@ public class KNN {
                     /**
                      * setting the distance according to the weight of the sample
                      */
-                    old.setDistance(Math.sqrt(sum) * old.getWeight());
+                    distances[atomicInteger.getAndIncrement()] = new TupleDistance(old, (Math.sqrt(sum) * old.getWeight()));
                 }
         ));
 
-        int counter = 0;
-        for (Tuple t : testingSet) {
-            distances[counter++] = t;
-        }
+//        int counter = 0;
+//        for (Tuple t : testingSet) {
+//            distances[counter++] = t;
+//        }
         //System.out.println("sorting and finding k neighbors");
 
-        for(Tuple d : distances){
-            if(Double.isNaN(d.getDistance()));
-            System.out.println("BUSTEEEEED");
-        }
+//        for(Tuple d : distances){
+//            if(Double.isNaN(d.getDistance())){
+//                System.out.println(this);
+//            }
+//
+//        }
 
         Arrays.sort(distances);
 
         for (int i = 0; i < k.length; i++) {
-            k[i] = distances[i];
+            k[i] = distances[i].tuple;
         }
 
         for (int i = 0; i < k.length; i++) {
@@ -160,5 +162,38 @@ public class KNN {
     public int hashCode() {
         return k_size;
     }
+
+
+    @Override
+    public String toString() {
+        return "KNN{" +
+                "k=" + Arrays.toString(k) +
+                ", alpha=" + alpha +
+                ", k_size=" + k_size +
+                ", accuracy=" + accuracy +
+                ", classes=" + Arrays.toString(classes) +
+                ", xWeight=" + xWeight +
+                ", yWeight=" + yWeight +
+                ", countCurrect=" + countCurrect +
+                ", errorRate=" + errorRate +
+                '}';
+    }
+
+
+    private class TupleDistance implements Comparable<TupleDistance>{
+        private Tuple tuple;
+        private double distance;
+
+        public TupleDistance(Tuple tuple, double distance) {
+            this.tuple = tuple;
+            this.distance = distance;
+        }
+
+        @Override
+        public int compareTo(TupleDistance o) {
+            return Double.compare(this.distance, o.distance);
+        }
+    }
+
 
 }

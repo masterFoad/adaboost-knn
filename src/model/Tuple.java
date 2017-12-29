@@ -1,8 +1,9 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Tuple implements Comparable<Tuple>{
+public class Tuple{
 
     private double[] dataVector;
     private boolean isCorrectlyClassified;
@@ -13,7 +14,10 @@ public class Tuple implements Comparable<Tuple>{
     /**
      * distance from current new observation.
      */
-    private double distance;
+//    private double distance;
+//
+//    private ArrayList<Double> distances;
+
 
 
     public Tuple(int dim) {
@@ -41,13 +45,6 @@ public class Tuple implements Comparable<Tuple>{
         this.classNum = classNum;
     }
 
-    public double getDistance() {
-        return distance;
-    }
-
-    public void setDistance(double distance) {
-        this.distance = distance;
-    }
 
     public double getWeight() {
         return weight;
@@ -88,16 +85,7 @@ public class Tuple implements Comparable<Tuple>{
                 ", isCorrectlyClassified=" + isCorrectlyClassified +
                 ", classNum=" + classNum +
                 ", weight=" + weight +
-                ", distance=" + distance +
                 '}';
     }
 
-    @Override
-    public int compareTo(Tuple o) {
-        if(this.distance<o.distance)
-            return -1;
-        else if(o.distance<this.distance)
-            return 1;
-        return 0;
-    }
 }
