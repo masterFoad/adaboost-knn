@@ -44,27 +44,28 @@ public class KNN {
     }
 
     public synchronized double init(Tuple[] testingSet, Tuple newObservation) {
-        TupleDistance[] distances = new TupleDistance[testingSet.length-1];
+        ArrayList<TupleDistance> distances = new ArrayList<>();
         int[] classes = new int[this.classes.length];
 
-
-        AtomicInteger atomicInteger = new AtomicInteger(0);
-        distance(testingSet, newObservation, (training, newObs) -> Arrays.stream(training).filter(old->!old.equals(newObs)).forEach(
+        distance(testingSet, newObservation, (training, newObs) -> Arrays.stream(training).forEach(
                 old -> {
-                    //System.out.println("setting up distances");
-                    double sum = 0.0;
-                    for (int i = 0; i < old.getDataVector().length; i++) {
-                        if(old.equals(newObs)){
-                            continue;
-                        }else {
-                            sum += (old.getDataVector()[i] * xWeight - newObs.getDataVector()[i] * yWeight) * (old.getDataVector()[i] * xWeight - newObs.getDataVector()[i] * yWeight);
+                    if(!old.equals(newObs)){
+                        //System.out.println("setting up distances");
+                        double sum = 0.0;
+                        for (int i = 0; i < old.getDataVector().length; i++) {
+                            if(old.equals(newObs)){
+                                continue;
+                            }else {
+                                sum += (old.getDataVector()[i] * xWeight - newObs.getDataVector()[i] * yWeight) * (old.getDataVector()[i] * xWeight - newObs.getDataVector()[i] * yWeight);
+                            }
                         }
+                        /**
+                         * setting the distance according to the weight of the sample
+                         */
+                        distances.add(new TupleDistance(old, (Math.sqrt(sum) * old.getWeight())));
+
                     }
-                    /**
-                     * setting the distance according to the weight of the sample
-                     */
-                    distances[atomicInteger.getAndIncrement()] = new TupleDistance(old, (Math.sqrt(sum) * old.getWeight()));
-                }
+                         }
         ));
 
 //        int counter = 0;
@@ -80,10 +81,10 @@ public class KNN {
 //
 //        }
 
-        Arrays.sort(distances);
+        Collections.sort(distances);
 
         for (int i = 0; i < k.length; i++) {
-            k[i] = distances[i].tuple;
+            k[i] = distances.get(i).tuple;
         }
 
         for (int i = 0; i < k.length; i++) {

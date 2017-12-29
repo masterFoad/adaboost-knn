@@ -33,15 +33,12 @@ public class ADABOOST {
         ExecutorService executor = new ThreadPoolExecutor(4, 4, 0L, TimeUnit.MILLISECONDS, queue, handler);
 
 
-        for (Tuple t : tuples
-                ) {
-            System.out.println(t);
-        }
-        for (int i = 0; i < 1; i++) {
 
-//            classifiers.parallelStream().forEach(knn-> Arrays.stream(tuples).parallel().forEach(t->
-//                    knn.init(tuples,t)
-//            ));
+        for (int i = 0; i < classifiers.size(); i++) {
+
+            System.out.println("step "+i);
+
+
             index = 0;
             for (int j = 0; j < 1; j++) {
                 //System.out.println("taking classifier "+knn);
@@ -98,42 +95,42 @@ public class ADABOOST {
             H.add(lowestErrorClassifier);
 
 
-            double overallErrorRate = 0;
-            for (Tuple t : tuples) {
-                double sumOfPlus1 = 1.0;
-                double sumOfMinos1 = 1.0;
-                for (KNN knn : H) {
-                    double type = knn.init(tuples, t);
-                    if (type > 0) {
-                        sumOfPlus1 *= type * knn.getAlpha();
-                    } else {
-                        sumOfMinos1 *= type * knn.getAlpha();
-                    }
-                }
-                if (sumOfPlus1 > sumOfMinos1) {
-                    if (t.getClassNum() != 1) {
-                        overallErrorRate++;
-                    }
-                }
-                if (sumOfPlus1 < sumOfMinos1) {
-                    if (t.getClassNum() == 1) {
-                        overallErrorRate++;
-                    }
-                }
-
-            }
-            if ((overallErrorRate / (double) tuples.length) == 0) {
-                System.out.println("DONE ALL CORRECTLY CLASSIFIED");
-                System.out.println(i);
-                break;
-            }
+//            double overallErrorRate = 0;
+//            for (Tuple t : tuples) {
+//                double sumOfPlus1 = 1.0;
+//                double sumOfMinos1 = 1.0;
+//                for (KNN knn : H) {
+//                    double type = knn.init(tuples, t);
+//                    if (type > 0) {
+//                        sumOfPlus1 *= type * knn.getAlpha();
+//                    } else {
+//                        sumOfMinos1 *= type * knn.getAlpha();
+//                    }
+//                }
+//                if (sumOfPlus1 > sumOfMinos1) {
+//                    if (t.getClassNum() != 1) {
+//                        overallErrorRate++;
+//                    }
+//                }
+//                if (sumOfPlus1 < sumOfMinos1) {
+//                    if (t.getClassNum() == 1) {
+//                        overallErrorRate++;
+//                    }
+//                }
+//
+//            }
+//            if ((overallErrorRate / (double) tuples.length) == 0) {
+//                System.out.println("DONE ALL CORRECTLY CLASSIFIED");
+//                System.out.println(i);
+//                break;
+//            }
         }
 
-        System.out.println("printing final weights:");
-        for (Tuple t : tuples
-                ) {
-            System.out.println(t);
-        }
+//        System.out.println("printing final weights:");
+//        for (Tuple t : tuples
+//                ) {
+//            System.out.println(t);
+//        }
     }
 
 

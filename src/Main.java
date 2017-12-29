@@ -18,7 +18,7 @@ public class Main {
 //        GenericReader.buildModel("/data1.csv", 0, (metaData, numOfClasses) -> GenericReader.createTuple(metaData));
 
 
-        SetStarter.initKNNs(GenericReader.init("/data1.csv", 2, (metaData, numOfClasses) -> GenericReader.createClassifier(metaData, numOfClasses)).toArray(new KNN[0]));
+        SetStarter.initKNNs(GenericReader.init("/weights.csv", 2, (metaData, numOfClasses) -> GenericReader.createClassifier(metaData, numOfClasses)).toArray(new KNN[0]));
         // reading the data from csv
         SetStarter
                 .divide(
@@ -33,15 +33,6 @@ public class Main {
         for (int i = 0; i < trainingSet.length; i++) {
             trainingSet[i].setWeight(1.0 / (double) trainingSet.length);
         }
-//
-//        KNN knn = new KNN(5, 2, 1.0, 1.0);
-//        for (int i = 0; i < trainingSet.length; i++) {
-//            System.out.println("Class: output " + knn.buildModel(trainingSet, trainingSet[i]) + " yi:" + trainingSet[i].getClassNum());
-//            System.out.println("Accuracy: " + knn.getAccuracy());
-//
-//        }
-//
-//        System.out.println(((double) knn.getCountCurrect() / trainingSet.length)+knn.getErrorRate());
 
 
         long startTime = System.currentTimeMillis();
@@ -52,7 +43,7 @@ public class Main {
         superClassifier.buildModel();
         testingSet[3].setWeight(1);
         System.out.println(testingSet[3].toString());
-        //superClassifier.checkNewPoint(testingSet[3]);
+        superClassifier.checkNewPoint(testingSet[3]);
         long endTime   = System.currentTimeMillis();
         long totalTime = endTime - startTime;
         System.out.println(totalTime);
