@@ -68,19 +68,6 @@ public class KNN {
                          }
         ));
 
-//        int counter = 0;
-//        for (Tuple t : testingSet) {
-//            distances[counter++] = t;
-//        }
-        //System.out.println("sorting and finding k neighbors");
-
-//        for(Tuple d : distances){
-//            if(Double.isNaN(d.getDistance())){
-//                System.out.println(this);
-//            }
-//
-//        }
-
         Collections.sort(distances);
 
         for (int i = 0; i < k.length; i++) {

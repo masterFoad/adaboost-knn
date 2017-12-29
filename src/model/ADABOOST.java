@@ -16,6 +16,11 @@ public class ADABOOST {
     private int index;
 
 
+    //    private BlockingQueue<Runnable> queue = new ArrayBlockingQueue<Runnable>(4, true);
+//    private RejectedExecutionHandler handler = new ThreadPoolExecutor.CallerRunsPolicy();
+//    private ExecutorService executor = new ThreadPoolExecutor(4, 4, 0L, TimeUnit.MILLISECONDS, queue, handler);
+    private ArrayList<Thread> threads = new ArrayList<>();
+
     public ADABOOST(ArrayList<KNN> classifiers, Tuple[] tuples) {
         this.classifiers = classifiers;
         this.tuples = tuples;
@@ -28,52 +33,57 @@ public class ADABOOST {
         System.out.println("printing initial weights:");
 
 
-        BlockingQueue<Runnable> queue = new ArrayBlockingQueue<Runnable>(4, true);
-        RejectedExecutionHandler handler = new ThreadPoolExecutor.CallerRunsPolicy();
-        ExecutorService executor = new ThreadPoolExecutor(4, 4, 0L, TimeUnit.MILLISECONDS, queue, handler);
-
-
-
         for (int i = 0; i < classifiers.size(); i++) {
 
-            System.out.println("step "+i);
+            System.out.println("step " + i);
 
+            ArrayList<Runnable> runnables = new ArrayList<>();
 
             index = 0;
-            for (int j = 0; j < 1; j++) {
+            for (int j = 0; j < classifiers.size(); j++) {
                 //System.out.println("taking classifier "+knn);
-                executor.execute(() -> {
+                runnables.add(() -> {
                     for (int k = 0; k < 100; k++) {
                         classifiers.get(index).init(tuples, tuples[k]);
 
                     }
                 });
-                executor.execute(() -> {
+                runnables.add(() -> {
                     for (int k = 100; k < 200; k++) {
                         classifiers.get(index).init(tuples, tuples[k]);
 
                     }
                 });
-                executor.execute(() -> {
+                runnables.add(() -> {
                     for (int k = 200; k < 300; k++) {
                         classifiers.get(index).init(tuples, tuples[k]);
 
                     }
                 });
-                executor.execute(() -> {
+                runnables.add(() -> {
                     for (int k = 300; k < tuples.length; k++) {
                         classifiers.get(index).init(tuples, tuples[k]);
 
                     }
                 });
-                executor.shutdown();
-                while (executor.isTerminated() == false) {
-                    Thread.sleep(50);
-                }
+
+                Thread t1 = new Thread(runnables.get(0));
+                Thread t2 = new Thread(runnables.get(1));
+                Thread t3 = new Thread(runnables.get(2));
+                Thread t4 = new Thread(runnables.get(3));
+
+                t1.start();
+                t2.start();
+                t3.start();
+                t4.start();
+
+                t1.join();
+                t2.join();
+                t3.join();
+                t4.join();
+
                 index++;
             }
-
-
 
 
             KNN lowestErrorClassifier = classifiersRankedByLowestError.peek();
@@ -95,35 +105,35 @@ public class ADABOOST {
             H.add(lowestErrorClassifier);
 
 
-//            double overallErrorRate = 0;
-//            for (Tuple t : tuples) {
-//                double sumOfPlus1 = 1.0;
-//                double sumOfMinos1 = 1.0;
-//                for (KNN knn : H) {
-//                    double type = knn.init(tuples, t);
-//                    if (type > 0) {
-//                        sumOfPlus1 *= type * knn.getAlpha();
-//                    } else {
-//                        sumOfMinos1 *= type * knn.getAlpha();
-//                    }
-//                }
-//                if (sumOfPlus1 > sumOfMinos1) {
-//                    if (t.getClassNum() != 1) {
-//                        overallErrorRate++;
-//                    }
-//                }
-//                if (sumOfPlus1 < sumOfMinos1) {
-//                    if (t.getClassNum() == 1) {
-//                        overallErrorRate++;
-//                    }
-//                }
-//
-//            }
-//            if ((overallErrorRate / (double) tuples.length) == 0) {
-//                System.out.println("DONE ALL CORRECTLY CLASSIFIED");
-//                System.out.println(i);
-//                break;
-//            }
+            double overallErrorRate = 0;
+            for (Tuple t : tuples) {
+                double sumOfPlus1 = 1.0;
+                double sumOfMinos1 = 1.0;
+                for (KNN knn : H) {
+                    double type = knn.init(tuples, t);
+                    if (type > 0) {
+                        sumOfPlus1 *= type * knn.getAlpha();
+                    } else {
+                        sumOfMinos1 *= type * knn.getAlpha();
+                    }
+                }
+                if (sumOfPlus1 > sumOfMinos1) {
+                    if (t.getClassNum() != 1) {
+                        overallErrorRate++;
+                    }
+                }
+                if (sumOfPlus1 < sumOfMinos1) {
+                    if (t.getClassNum() == 1) {
+                        overallErrorRate++;
+                    }
+                }
+
+            }
+            if ((overallErrorRate / (double) tuples.length) == 0) {
+                System.out.println("DONE ALL CORRECTLY CLASSIFIED");
+                System.out.println(i);
+                break;
+            }
         }
 
 //        System.out.println("printing final weights:");
@@ -161,6 +171,33 @@ public class ADABOOST {
                 System.out.println("class is :" + 2);
             }
         }
+
+    }
+
+
+    public void runOnTestingSet() throws InterruptedException {
+
+        ArrayList<Runnable> runnables = new ArrayList<>();
+
+        runnables.add(() -> {
+            for (int i = 0; i < 100; i++) {
+                checkNewPoint(SetStarter.getTestingSet()[i]);
+            }
+        });
+        runnables.add(() -> {
+            for (int i = 100; i < SetStarter.getTestingSet().length; i++) {
+                checkNewPoint(SetStarter.getTestingSet()[i]);
+            }
+        });
+
+        Thread t1 = new Thread(runnables.get(0));
+        Thread t2 = new Thread(runnables.get(0));
+
+        t1.start();
+        t2.start();
+
+        t1.join();
+        t2.join();
 
     }
 

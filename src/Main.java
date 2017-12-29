@@ -34,6 +34,10 @@ public class Main {
             trainingSet[i].setWeight(1.0 / (double) trainingSet.length);
         }
 
+        for (int i = 0; i < testingSet.length; i++) {
+            trainingSet[i].setWeight(1.0);
+        }
+
 
         long startTime = System.currentTimeMillis();
         ADABOOST superClassifier = new ADABOOST(
@@ -41,9 +45,7 @@ public class Main {
                 trainingSet);
 
         superClassifier.buildModel();
-        testingSet[3].setWeight(1);
-        System.out.println(testingSet[3].toString());
-        superClassifier.checkNewPoint(testingSet[3]);
+        superClassifier.runOnTestingSet();
         long endTime   = System.currentTimeMillis();
         long totalTime = endTime - startTime;
         System.out.println(totalTime);
