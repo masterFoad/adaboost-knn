@@ -1,5 +1,7 @@
 package model;
 
+import model.thread_center.ThreadPoolCenter;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -10,22 +12,16 @@ public class ADABOOST {
 
     private ArrayList<KNN> classifiers;
     private PriorityQueue<KNN> classifiersRankedByLowestError;
-    private ArrayList<KNN> H;
+    private ArrayList<FinalModel> FinalModel;
     private Tuple[] tuples;
-
     private static volatile int index;
-
-    private BlockingQueue<Runnable> queue = new ArrayBlockingQueue<Runnable>(7, true);
-    private RejectedExecutionHandler handler = new ThreadPoolExecutor.CallerRunsPolicy();
-    private ExecutorService executor = new ThreadPoolExecutor(7, 7, 0L, TimeUnit.MILLISECONDS, queue, handler);
-    //executorprivate ArrayList<Thread> threads = new ArrayList<>();
+    private volatile double overallErrorRate = 0.0;
 
     public ADABOOST(ArrayList<KNN> classifiers, Tuple[] tuples) {
         this.classifiers = classifiers;
         this.tuples = tuples;
-        this.classifiersRankedByLowestError = new PriorityQueue<>(Comparator.comparingDouble(KNN::getErrorRate));
-        this.classifiersRankedByLowestError.addAll(this.classifiers);
-        this.H = new ArrayList<>();
+        this.classifiersRankedByLowestError = new PriorityQueue<>(classifiers.size(), Comparator.comparingDouble(KNN::getErrorRate));
+        this.FinalModel = new ArrayList<>();
     }
 
     public void buildModel() throws InterruptedException {
@@ -38,69 +34,25 @@ public class ADABOOST {
             for (int i = 0; i < classifiers.size(); i++) {
 
                 System.out.println("step " + i);
-
-                for (KNN k : classifiers){
+                classifiersRankedByLowestError.clear();
+                for (KNN k : classifiers) {
                     k.prepareForNextStep();
                 }
 
                 index = 0;
                 for (int j = 0; j < classifiers.size(); j++) {
-                    ArrayList<Runnable> runnables = new ArrayList<>();
-
-
-                runnables.add(() -> {
-                    for (int k = 0; k < 50; k++) {
-                        classifiers.get(index).init(tuples, tuples[k]);
-
-                    }
-                });
-                runnables.add(() -> {
-                    for (int k = 50; k < 100; k++) {
-                        classifiers.get(index).init(tuples, tuples[k]);
-
-                    }
-                });
-                runnables.add(() -> {
-                    for (int k = 100; k < 150; k++) {
-                        classifiers.get(index).init(tuples, tuples[k]);
-
-                    }
-                });
-                runnables.add(() -> {
-                    for (int k = 150; k < 200; k++) {
-                        classifiers.get(index).init(tuples, tuples[k]);
-
-                    }
-                });
-                runnables.add(() -> {
-                    for (int k = 200; k < 250; k++) {
-                        classifiers.get(index).init(tuples, tuples[k]);
-
-                    }
-                });
-                runnables.add(() -> {
-                    for (int k = 250; k < 300; k++) {
-                        classifiers.get(index).init(tuples, tuples[k]);
-
-                    }
-                });
-                runnables.add(() -> {
-                    for (int k = 350; k < tuples.length; k++) {
-                        classifiers.get(index).init(tuples, tuples[k]);
-
-                    }
-                });
-
-                    CompletableFuture<?>[] futures = runnables.stream()
-                            .map(task -> CompletableFuture.runAsync(task, executor))
+                    CompletableFuture<?>[] futures = initWorkers(classifiers.get(index), tuples).stream()
+                            .map(task -> CompletableFuture.runAsync(task, ThreadPoolCenter.getExecutor()))
                             .toArray(CompletableFuture[]::new);
-                    CompletableFuture.allOf(futures).join();
 
+
+                    CompletableFuture.allOf(futures).join();
+                    classifiersRankedByLowestError.add(classifiers.get(index));
                     index++;
                 }
 
 
-                KNN lowestErrorClassifier = classifiersRankedByLowestError.poll();
+                KNN lowestErrorClassifier = classifiersRankedByLowestError.peek();
                 double E = lowestErrorClassifier.getErrorRate();
                 double alpha = (1 - E) / (E);
                 //double alpha = 0.5 * Math.log((1 - E) / (E));
@@ -116,46 +68,48 @@ public class ADABOOST {
                 );
 
                 lowestErrorClassifier.setAlpha(alpha);
-                H.add(lowestErrorClassifier);
+                FinalModel.add(new FinalModel(lowestErrorClassifier, lowestErrorClassifier.getAlpha()));
 
 
-                double overallErrorRate = 0;
-                for (Tuple t : tuples) {
+                overallErrorRate = 0;
+                for (int j = 0; j < tuples.length; j++) {
                     double sumOfPlus1 = 1.0;
                     double sumOfMinos1 = 1.0;
-                    for (KNN knn : H) {
-                        double type = knn.init(SetStarter.getTrainingSet(), t);
+                    for (FinalModel finalModel : FinalModel) {
+                        double type = finalModel.knn.init(SetStarter.getTrainingSet(), tuples[j]);
                         if (type > 0) {
-                            sumOfPlus1 *= type * knn.getAlpha();
+                            sumOfPlus1 *= type * finalModel.alpha;
                         } else {
-                            sumOfMinos1 *= type * knn.getAlpha();
+                            sumOfMinos1 *= type * finalModel.alpha;
                         }
                     }
                     if (sumOfPlus1 > sumOfMinos1) {
-                        if (t.getClassNum() != 1) {
+                        if (tuples[j].getClassNum() != 1) {
                             overallErrorRate++;
                         }
                     }
                     if (sumOfPlus1 < sumOfMinos1) {
-                        if (t.getClassNum() == 1) {
+                        if (tuples[j].getClassNum() == 1) {
                             overallErrorRate++;
                         }
                     }
 
                 }
-                if ((overallErrorRate / (double) tuples.length) == 0) {
+                if ((overallErrorRate / (double) tuples.length) == 0.0) {
                     System.out.println("DONE ALL CORRECTLY CLASSIFIED");
                     System.out.println(i);
                     break;
                 }
             }
 
+            System.out.println(((overallErrorRate / (double) tuples.length)));
+            System.out.println(getFinalModel());
 //        System.out.println("printing final weights:");
 //        for (Tuple t : tuples
 //                ) {
 //            System.out.println(t);
 //        }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -165,12 +119,12 @@ public class ADABOOST {
         double overallErrorRate = 0;
         double sumOfPlus1 = 1.0;
         double sumOfMinos1 = 1.0;
-        for (KNN knn : H) {
-            double type = knn.init(tuples, t);
+        for (FinalModel finalModel : FinalModel) {
+            double type = finalModel.knn.init(tuples, t);
             if (type > 0) {
-                sumOfPlus1 *= type * knn.getAlpha();
+                sumOfPlus1 *= type * finalModel.knn.getAlpha();
             } else {
-                sumOfMinos1 *= type * knn.getAlpha();
+                sumOfMinos1 *= type * finalModel.knn.getAlpha();
             }
         }
 
@@ -228,16 +182,94 @@ public class ADABOOST {
         return classifiersRankedByLowestError;
     }
 
-    public ArrayList<KNN> getH() {
-        return H;
+    public ArrayList<FinalModel> getFinalModel() {
+        return FinalModel;
     }
 
     public Tuple[] getTuples() {
         return tuples;
     }
 
-
-    public void closeThreadPool(){
-        executor.shutdown();
+    public synchronized double getOverallErrorRate() {
+        return overallErrorRate;
     }
+
+    public synchronized void setOverallErrorRate(double overallErrorRate) {
+        this.overallErrorRate = overallErrorRate;
+    }
+
+
+    private ArrayList<Runnable> initWorkers(KNN knn, Tuple[] set) {
+        ArrayList<Runnable> runnables = new ArrayList<>();
+        int start = 0;
+        int finish = 10;
+        while (finish <= tuples.length) {
+            runnables.add(RunnableFactory.create(start, finish, knn, set));
+
+            if (finish == tuples.length)
+                break;
+
+            start = finish;
+            finish += 10;
+            if (finish > tuples.length) {
+                finish = tuples.length;
+            }
+
+        }
+
+        return runnables;
+    }
+
+    private class FinalModel {
+        private KNN knn;
+        private double alpha;
+
+        public FinalModel(KNN knn, double alpha) {
+            this.knn = knn;
+            this.alpha = alpha;
+        }
+
+        @Override
+        public String toString() {
+            return "FinalModel{" +
+                    "knn=" + knn.getNum() +
+                    ", alpha=" + alpha +
+                    '}';
+        }
+    }
+
+
+    private static class RunnableFactory {
+
+        private RunnableFactory() {
+        }
+
+
+        public static Runnable create(int start, int finish, KNN knn, Tuple[] set) {
+
+            return () -> {
+                for (int k = start; k < finish; k++) {
+                    knn.init(set, set[k]);
+
+                }
+            };
+
+        }
+
+
+        public static Runnable createTest(int start, int finish, KNN knn, Tuple[] set) {
+
+            return () -> {
+                for (int k = start; k < finish; k++) {
+                    knn.init(set, set[k]);
+
+                }
+            };
+
+        }
+
+
+    }
+
+
 }

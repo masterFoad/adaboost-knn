@@ -1,7 +1,6 @@
 package model;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class KNN {
     private static int id;
@@ -31,6 +30,7 @@ public class KNN {
 
     private volatile double errorRate;
 
+
     //TODO change weights to num of classes
     public KNN(int k, int numofClasses, double[] weights) {
         this.num = id;
@@ -45,42 +45,48 @@ public class KNN {
         this.weights = weights;
     }
 
-    public synchronized double init(Tuple[] set, Tuple newObservation) {
-        ArrayList<TupleDistance> distances = new ArrayList<>();
+    public double init(Tuple[] set, Tuple newObservation) {
+        //List<TupleDistance> distancesA = Collections.synchronizedList(new ArrayList<TupleDistance>());
+//        TupleDistance[] distances = new TupleDistance[set.length-1];
+        PriorityQueue<TupleDistance> distances = new PriorityQueue<>(set.length);
         int[] classes = new int[this.classes.length];
         Tuple[] k = new Tuple[k_size];
 
-        distance(set, newObservation, (
-                training, newObs) -> Arrays.stream(training)
-                .forEach(
-                        old -> {
-                            if (!old.equals(newObs)) {
-                                //System.out.println("setting up distances");
-                                double sum = 0.0;
-                                for (int i = 0; i < old.getDataVector().length; i++) {
-                                    if (old.equals(newObs)) {
-                                        continue;
-                                    } else {
+        int counter = 0;
+        for (int o = 0; o < set.length; o++) {
+            Tuple old = set[o];
+            if (!old.equals(newObservation)) {
+                //System.out.println("setting up distances");
+                double sum = 0.0;
+                for (int i = 0; i < old.getDataVector().length; i++) {
+                    if (old.equals(newObservation)) {
+                        continue;
+                    } else {
 
 
-                                        sum += (old.getDataVector()[i] - newObs.getDataVector()[i]) * (old.getDataVector()[i] - newObs.getDataVector()[i]) * weights[i];
+                        sum += (old.getDataVector()[i] - newObservation.getDataVector()[i]) * (old.getDataVector()[i] - newObservation.getDataVector()[i]) * weights[i];
 
 
-                                    }
-                                }
-                                /**
-                                 * setting the distance according to the weight of the sample
-                                 */
-                                distances.add(new TupleDistance(old, (Math.sqrt(sum) * old.getWeight())));
+                    }
+                }
+                /**
+                 * setting the distance according to the weight of the sample
+                 */
+                distances.add(new TupleDistance(old, (Math.sqrt(sum) * old.getWeight())));
+//                distances[counter++]=new TupleDistance(old, (Math.sqrt(sum) * old.getWeight()));
+            }
+        }
 
-                            }
-                        }
-                ));
+//        for (int i = 0; i < distancesA.size(); i++) {
+//            distances[i]=distancesA.get(i);
+//        }
+       // Arrays.sort(distances);
 
-        Collections.sort(distances);
+
 
         for (int i = 0; i < k.length; i++) {
-            k[i] = distances.get(i).tuple;
+            k[i] = distances.poll().tuple;
+           // k[i] = distances[i].tuple;
         }
 
         for (int i = 0; i < k.length; i++) {

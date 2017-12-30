@@ -3,6 +3,7 @@ import model.ADABOOST;
 import model.KNN;
 import model.SetStarter;
 import model.Tuple;
+import model.thread_center.ThreadPoolCenter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,7 +59,7 @@ public class Main {
         long endTime   = System.currentTimeMillis();
         long totalTime = endTime - startTime;
         System.out.println(totalTime);
-        superClassifier.closeThreadPool();
+        ThreadPoolCenter.closeThreadPool();
 
 
 
