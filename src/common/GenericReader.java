@@ -73,8 +73,6 @@ public class GenericReader {
         for(String s: metadata){
             weights[index++] = Double.parseDouble(s);
         }
-
-
         return new KNN(3, numOfClasses, weights);
     }
 

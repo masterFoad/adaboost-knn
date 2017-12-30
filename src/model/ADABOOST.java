@@ -43,12 +43,11 @@ public class ADABOOST {
                     k.prepareForNextStep();
                 }
 
-
+                index = 0;
                 for (int j = 0; j < classifiers.size(); j++) {
-                    //System.out.println("taking classifier "+knn);
                     ArrayList<Runnable> runnables = new ArrayList<>();
 
-                    index = 0;
+
                 runnables.add(() -> {
                     for (int k = 0; k < 50; k++) {
                         classifiers.get(index).init(tuples, tuples[k]);
@@ -92,39 +91,22 @@ public class ADABOOST {
                     }
                 });
 
-//                    Thread[] threads = new Thread[runnables.size()];
-//
-//                    int counter = 0;
-//                    for (Runnable r : runnables) {
-//                        executor.execute(r);
-//                    }
                     CompletableFuture<?>[] futures = runnables.stream()
                             .map(task -> CompletableFuture.runAsync(task, executor))
                             .toArray(CompletableFuture[]::new);
                     CompletableFuture.allOf(futures).join();
-                   // executor.shutdown();
-
-//
-//                    for (Thread t : threads) {
-//                        t.start();
-//                    }
-//
-//                    for (Thread t : threads) {
-//                        t.join();
-//                    }
 
                     index++;
                 }
 
 
-                KNN lowestErrorClassifier = classifiersRankedByLowestError.peek();
+                KNN lowestErrorClassifier = classifiersRankedByLowestError.poll();
                 double E = lowestErrorClassifier.getErrorRate();
                 double alpha = (1 - E) / (E);
                 //double alpha = 0.5 * Math.log((1 - E) / (E));
-
+                System.out.println(lowestErrorClassifier.getNum());
                 Arrays.stream(SetStarter.getTrainingSet()).forEach(t ->
                         {
-                            System.out.println(lowestErrorClassifier.getNum());
                             if (t.getIsCorrectlyClassified()[lowestErrorClassifier.getNum()]) {
                                 t.setWeight(0.5 * (t.getWeight() / (1 - E)));
                             } else {

@@ -10,7 +10,7 @@ public class KNN {
     /**
      * this array will hold the indexes of the k neighbors
      */
-    private Tuple[] k;
+//    private Tuple[] k;
 
     /**
      * this list will hold the distances, the index of the element will be the same index in the trainingSet
@@ -25,9 +25,6 @@ public class KNN {
 
     private int[] classes;
 
-    private double xWeight;
-    private double yWeight;
-
     private double[] weights;
 
     private int countCurrect;
@@ -38,8 +35,8 @@ public class KNN {
     public KNN(int k, int numofClasses, double[] weights) {
         this.num = id;
         id++;
-        this.k = new Tuple[k];
-        k_size = this.k.length;
+        //this.k = new Tuple[k];
+        k_size = k;
         /**
          * so we don't have to use 0
          */
@@ -51,31 +48,34 @@ public class KNN {
     public synchronized double init(Tuple[] set, Tuple newObservation) {
         ArrayList<TupleDistance> distances = new ArrayList<>();
         int[] classes = new int[this.classes.length];
+        Tuple[] k = new Tuple[k_size];
 
-        distance(set, newObservation, (training, newObs) -> Arrays.stream(training).forEach(
-                old -> {
-                    if (!old.equals(newObs)) {
-                        //System.out.println("setting up distances");
-                        double sum = 0.0;
-                        for (int i = 0; i < old.getDataVector().length; i++) {
-                            if (old.equals(newObs)) {
-                                continue;
-                            } else {
+        distance(set, newObservation, (
+                training, newObs) -> Arrays.stream(training)
+                .forEach(
+                        old -> {
+                            if (!old.equals(newObs)) {
+                                //System.out.println("setting up distances");
+                                double sum = 0.0;
+                                for (int i = 0; i < old.getDataVector().length; i++) {
+                                    if (old.equals(newObs)) {
+                                        continue;
+                                    } else {
 
 
-                                sum += (old.getDataVector()[i] - newObs.getDataVector()[i]) * (old.getDataVector()[i] - newObs.getDataVector()[i]) * weights[i];
+                                        sum += (old.getDataVector()[i] - newObs.getDataVector()[i]) * (old.getDataVector()[i] - newObs.getDataVector()[i]) * weights[i];
 
+
+                                    }
+                                }
+                                /**
+                                 * setting the distance according to the weight of the sample
+                                 */
+                                distances.add(new TupleDistance(old, (Math.sqrt(sum) * old.getWeight())));
 
                             }
                         }
-                        /**
-                         * setting the distance according to the weight of the sample
-                         */
-                        distances.add(new TupleDistance(old, (Math.sqrt(sum) * old.getWeight())));
-
-                    }
-                }
-        ));
+                ));
 
         Collections.sort(distances);
 
@@ -95,10 +95,10 @@ public class KNN {
                 index = i;
             }
         }
-        accuracy = ((double) classes[index]) / k_size;
-        if (newObservation.getClassNum() == index) {
-            countCurrect++;
-        }
+//        accuracy = ((double) classes[index]) / k_size;
+//        if (newObservation.getClassNum() == index) {
+//            countCurrect++;
+//        }
 
 
         //calculating error rate
@@ -106,15 +106,15 @@ public class KNN {
             setErrorRate(getErrorRate() + newObservation.getWeight());
             newObservation.getIsCorrectlyClassified()[num] = false;
         } else {
-            newObservation.getIsCorrectlyClassified()[num] = false;
+            newObservation.getIsCorrectlyClassified()[num] = true;
         }
 
-        if (getErrorRate() == 0) {
-            System.out.println(xWeight + " " + yWeight);
-            for (Tuple t : k) {
-                System.out.println(t);
-            }
-        }
+//        if (getErrorRate() == 0) {
+//            System.out.println(weights[0] + " " + weights[1]+" "+index);
+//            for (Tuple t : k) {
+//                System.out.println(t);
+//            }
+//        }
 
 
         return (double) index;
@@ -178,13 +178,10 @@ public class KNN {
     @Override
     public String toString() {
         return "KNN{" +
-                "k=" + Arrays.toString(k) +
                 ", alpha=" + alpha +
                 ", k_size=" + k_size +
                 ", accuracy=" + accuracy +
                 ", classes=" + Arrays.toString(classes) +
-                ", xWeight=" + xWeight +
-                ", yWeight=" + yWeight +
                 ", countCurrect=" + countCurrect +
                 ", errorRate=" + errorRate +
                 '}';
