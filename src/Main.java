@@ -59,6 +59,9 @@ public class Main {
         long endTime   = System.currentTimeMillis();
         long totalTime = endTime - startTime;
         System.out.println(totalTime);
+
+
+        superClassifier.runOnTestingSet();
         ThreadPoolCenter.closeThreadPool();
 
 
