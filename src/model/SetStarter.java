@@ -17,7 +17,7 @@ public class SetStarter {
     }
 
     public static void divide(Tuple[] tups, double divisionPercent) {
-        //Collections.shuffle(Arrays.asList(tups));
+        Collections.shuffle(Arrays.asList(tups));
         int dividor = (int) (tups.length * divisionPercent);
         //TODO check if the division percent works
 

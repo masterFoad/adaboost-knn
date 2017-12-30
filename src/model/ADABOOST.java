@@ -35,6 +35,7 @@ public class ADABOOST {
             for (int i = 0; i < classifiers.size(); i++) {
 
                 System.out.println("step " + i);
+                //System.out.println(Arrays.stream(tuples).mapToDouble(Tuple::getWeight).sum());
                 priorityKNN.clear();
                 for (KNN k : classifiers) {
                     k.prepareForNextStep();
@@ -86,6 +87,7 @@ public class ADABOOST {
 
             System.out.println(1 - ((overallErrorRate / (double) tuples.length)));
             System.out.println(getFinalModel());
+
 //        System.out.println("printing final weights:");
 //        for (Tuple t : tuples
 //                ) {
