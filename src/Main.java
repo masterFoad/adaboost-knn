@@ -30,12 +30,12 @@ public class Main {
         Tuple[] trainingSet = SetStarter.getTrainingSet();
         Tuple[] testingSet = SetStarter.getTestingSet();
 //
-        for (int i = 0; i < trainingSet.length; i++) {
-            trainingSet[i].setWeight(1.0 / (double) trainingSet.length);
-        }
+//        for (int i = 0; i < trainingSet.length; i++) {
+//            trainingSet[i].setWeight(1.0 / (double) trainingSet.length);
+//        }
 
         for (int i = 0; i < testingSet.length; i++) {
-            trainingSet[i].setWeight(1.0);
+            testingSet[i].setWeight(1.0);
         }
 
 
@@ -49,6 +49,7 @@ public class Main {
         long endTime   = System.currentTimeMillis();
         long totalTime = endTime - startTime;
         System.out.println(totalTime);
+        superClassifier.closeThreadPool();
 
 
 

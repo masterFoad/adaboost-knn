@@ -6,7 +6,7 @@ import java.util.Arrays;
 public class Tuple{
 
     private double[] dataVector;
-    private boolean isCorrectlyClassified;
+    private boolean[] isCorrectlyClassified;
     private int classNum;
     private double weight;
 
@@ -27,6 +27,7 @@ public class Tuple{
     public Tuple(double[] dataVector, int classNum) {
         this.dataVector = dataVector;
         this.classNum = classNum;
+        this.isCorrectlyClassified = new boolean[SetStarter.getWeakClassifiers().length];
     }
 
     public double[] getDataVector() {
@@ -54,14 +55,9 @@ public class Tuple{
         this.weight = weight;
     }
 
-    public boolean isCorrectlyClassified() {
+    public boolean[] getIsCorrectlyClassified() {
         return isCorrectlyClassified;
     }
-
-    public void setCorrectlyClassified(boolean correctlyClassified) {
-        isCorrectlyClassified = correctlyClassified;
-    }
-
 
     @Override
     public boolean equals(Object o) {

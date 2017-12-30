@@ -67,7 +67,15 @@ public class GenericReader {
 //        if (randomK % 2 == 0) {
 //            randomK++;
 //        }
-        return new KNN(3, numOfClasses, Double.parseDouble(metadata[0]), Double.parseDouble(metadata[1]));
+
+        double [] weights = new double[metadata.length];
+        int index = 0;
+        for(String s: metadata){
+            weights[index++] = Double.parseDouble(s);
+        }
+
+
+        return new KNN(3, numOfClasses, weights);
     }
 
     public static Tuple createTuple(String[] metadata) {

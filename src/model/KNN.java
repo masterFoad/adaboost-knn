@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class KNN {
+    private static int id;
+    private int num;
 
     /**
      * this array will hold the indexes of the k neighbors
@@ -26,12 +28,16 @@ public class KNN {
     private double xWeight;
     private double yWeight;
 
+    private double[] weights;
+
     private int countCurrect;
 
-    private double errorRate;
+    private volatile double errorRate;
 
     //TODO change weights to num of classes
-    public KNN(int k, int numofClasses, double xWeight, double yWeight) {
+    public KNN(int k, int numofClasses, double[] weights) {
+        this.num = id;
+        id++;
         this.k = new Tuple[k];
         k_size = this.k.length;
         /**
@@ -39,24 +45,27 @@ public class KNN {
          */
         classes = new int[numofClasses + 1];
 
-        this.xWeight = xWeight;
-        this.yWeight = yWeight;
+        this.weights = weights;
     }
 
-    public synchronized double init(Tuple[] testingSet, Tuple newObservation) {
+    public synchronized double init(Tuple[] set, Tuple newObservation) {
         ArrayList<TupleDistance> distances = new ArrayList<>();
         int[] classes = new int[this.classes.length];
 
-        distance(testingSet, newObservation, (training, newObs) -> Arrays.stream(training).forEach(
+        distance(set, newObservation, (training, newObs) -> Arrays.stream(training).forEach(
                 old -> {
-                    if(!old.equals(newObs)){
+                    if (!old.equals(newObs)) {
                         //System.out.println("setting up distances");
                         double sum = 0.0;
                         for (int i = 0; i < old.getDataVector().length; i++) {
-                            if(old.equals(newObs)){
+                            if (old.equals(newObs)) {
                                 continue;
-                            }else {
-                                sum += (old.getDataVector()[i] * xWeight - newObs.getDataVector()[i] * yWeight) * (old.getDataVector()[i] * xWeight - newObs.getDataVector()[i] * yWeight);
+                            } else {
+
+
+                                sum += (old.getDataVector()[i] - newObs.getDataVector()[i]) * (old.getDataVector()[i] - newObs.getDataVector()[i]) * weights[i];
+
+
                             }
                         }
                         /**
@@ -65,7 +74,7 @@ public class KNN {
                         distances.add(new TupleDistance(old, (Math.sqrt(sum) * old.getWeight())));
 
                     }
-                         }
+                }
         ));
 
         Collections.sort(distances);
@@ -94,10 +103,17 @@ public class KNN {
 
         //calculating error rate
         if (newObservation.getClassNum() != index) {
-            errorRate += newObservation.getWeight();
-            newObservation.setCorrectlyClassified(false);
+            setErrorRate(getErrorRate() + newObservation.getWeight());
+            newObservation.getIsCorrectlyClassified()[num] = false;
         } else {
-            newObservation.setCorrectlyClassified(true);
+            newObservation.getIsCorrectlyClassified()[num] = false;
+        }
+
+        if (getErrorRate() == 0) {
+            System.out.println(xWeight + " " + yWeight);
+            for (Tuple t : k) {
+                System.out.println(t);
+            }
         }
 
 
@@ -109,6 +125,13 @@ public class KNN {
 
     }
 
+    public void prepareForNextStep() {
+        errorRate = 0;
+    }
+
+    public int getNum() {
+        return num;
+    }
 
     public double getAccuracy() {
         return accuracy;
@@ -130,11 +153,11 @@ public class KNN {
         return countCurrect;
     }
 
-    public double getErrorRate() {
+    public synchronized double getErrorRate() {
         return errorRate;
     }
 
-    public void setErrorRate(double errorRate) {
+    public synchronized void setErrorRate(double errorRate) {
         this.errorRate = errorRate;
     }
 
@@ -168,7 +191,7 @@ public class KNN {
     }
 
 
-    private class TupleDistance implements Comparable<TupleDistance>{
+    private class TupleDistance implements Comparable<TupleDistance> {
         private Tuple tuple;
         private double distance;
 
@@ -176,6 +199,7 @@ public class KNN {
             this.tuple = tuple;
             this.distance = distance;
         }
+
 
         @Override
         public int compareTo(TupleDistance o) {
