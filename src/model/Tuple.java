@@ -5,6 +5,8 @@ import java.util.Arrays;
 
 public class Tuple{
 
+    private static int id = 0;
+    private int num;
     private double[] dataVector;
     private boolean[] isCorrectlyClassified;
     private int classNum;
@@ -25,6 +27,8 @@ public class Tuple{
     }
 
     public Tuple(double[] dataVector, int classNum) {
+        this.num = id;
+        id++;
         this.dataVector = dataVector;
         this.classNum = classNum;
         this.isCorrectlyClassified = new boolean[SetStarter.getWeakClassifiers().length];
@@ -82,6 +86,14 @@ public class Tuple{
                 ", classNum=" + classNum +
                 ", weight=" + weight +
                 '}';
+    }
+
+    public int getNum() {
+        return num;
+    }
+
+    public static void resetId(){
+        id=0;
     }
 
 }

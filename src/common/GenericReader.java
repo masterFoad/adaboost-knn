@@ -26,7 +26,8 @@ public class GenericReader {
         List<T> dataFromCSV = new ArrayList<>();
         InputStream is = null;
         BufferedReader reader = null;
-
+        KNN.resetId();
+        Tuple.resetId();
         try {
 
             is = common.GenericReader.class.getResourceAsStream(filePath);

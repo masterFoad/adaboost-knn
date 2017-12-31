@@ -19,11 +19,11 @@ public class Main {
 //        GenericReader.buildModel("/data1.csv", 0, (metaData, numOfClasses) -> GenericReader.createTuple(metaData));
 
 
-        SetStarter.initKNNs(GenericReader.init("/weights.csv", 2, (metaData, numOfClasses) -> GenericReader.createClassifier(metaData, numOfClasses)).toArray(new KNN[0]));
+        SetStarter.initKNNs(GenericReader.init("/weights2.csv", 2, (metaData, numOfClasses) -> GenericReader.createClassifier(metaData, numOfClasses)).toArray(new KNN[0]));
         // reading the data from csv
         SetStarter
                 .divide(
-                        GenericReader.init("/data1.csv",
+                        GenericReader.init("/data2.csv",
                                 0,
                                 (metaData, numOfClasses) -> GenericReader.createTuple(metaData)).toArray(new Tuple[0]),
                         0.66);
@@ -46,6 +46,11 @@ public class Main {
 
         for (int i = 0; i < testingSet.length; i++) {
             testingSet[i].setWeight(1.0);
+        }
+
+
+        for (KNN knn: SetStarter.getWeakClassifiers()) {
+            knn.preprocessing();
         }
 
 

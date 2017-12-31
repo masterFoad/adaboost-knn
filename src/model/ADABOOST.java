@@ -54,6 +54,7 @@ public class ADABOOST {
                 }
 
 
+
                 KNN lowestErrorClassifier = priorityKNN.peek();
                 double E = lowestErrorClassifier.getErrorRate();
                 double alpha = (1 - E) / (E);
@@ -88,11 +89,6 @@ public class ADABOOST {
             System.out.println(1 - ((overallErrorRate / (double) tuples.length)));
             System.out.println(getFinalModel());
 
-//        System.out.println("printing final weights:");
-//        for (Tuple t : tuples
-//                ) {
-//            System.out.println(t);
-//        }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -217,26 +213,6 @@ public class ADABOOST {
         return runnables;
     }
 
-    private ArrayList<Runnable> initWorkers(Tuple[] set) {
-        ArrayList<Runnable> runnables = new ArrayList<>();
-        int start = 0;
-        int finish = 10;
-        while (finish <= tuples.length) {
-            runnables.add(RunnableFactory.currentModelSplit(start, finish, set, this));
-
-            if (finish == tuples.length)
-                break;
-
-            start = finish;
-            finish += 10;
-            if (finish > tuples.length) {
-                finish = tuples.length;
-            }
-
-        }
-
-        return runnables;
-    }
 
     private class FinalModel {
         private KNN knn;
@@ -274,16 +250,6 @@ public class ADABOOST {
 
         }
 
-
-        public static Runnable currentModelSplit(int start, int finish, Tuple[] set, ADABOOST a) {
-
-            return () -> {
-                for (int k = start; k < finish; k++) {
-                    a.setOverallErrorRate(a.getOverallErrorRate() + a.checkModelValidity(set[k]));
-                }
-            };
-
-        }
 
 
     }
