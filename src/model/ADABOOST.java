@@ -79,9 +79,9 @@ public class ADABOOST {
                     setOverallErrorRate(getOverallErrorRate() + checkModelValidity(tuples[j]));
                 }
 
-                if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0) {
-                    System.out.println("DONE ALL CORRECTLY CLASSIFIED");
-                    System.out.println(i);
+
+
+                if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e->e.getErrorRate()>0.5)) {
                     break;
                 }
             }

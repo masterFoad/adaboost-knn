@@ -49,18 +49,18 @@ public class KNN {
 
     public void preprocessing() {
         distancesPair = new double
-                [SetStarter.getTrainingSet().length+SetStarter.getTestingSet().length]
-                [SetStarter.getTrainingSet().length+SetStarter.getTestingSet().length];
+                [SetStarter.getTrainingSet().length + SetStarter.getTestingSet().length]
+                [SetStarter.getTrainingSet().length + SetStarter.getTestingSet().length];
 
-        initilizeDistances(SetStarter.getTrainingSet(),distancesPair);
-        initilizeDistances(SetStarter.getTestingSet(),distancesPair);
+        initilizeDistances(SetStarter.getTrainingSet(), distancesPair);
+        initilizeDistances(SetStarter.getTestingSet(), distancesPair);
     }
 
 
     public void initilizeDistances(Tuple[] set, double[][] distancesPair) {
         for (int o = 0; o < set.length; o++) {
+            Tuple old = set[o];
             for (int j = 0; j < set.length; j++) {
-                Tuple old = set[o];
                 Tuple newObservation = set[j];
                 if (!old.equals(newObservation)) {
                     double sum = 0.0;
