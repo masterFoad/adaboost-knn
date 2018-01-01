@@ -5,6 +5,7 @@ import model.SetStarter;
 import model.Tuple;
 import model.thread_center.ThreadPoolCenter;
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -49,9 +50,9 @@ public class Main {
         }
 
 
-        for (KNN knn: SetStarter.getWeakClassifiers()) {
-            knn.preprocessing();
-        }
+//        for (KNN knn: SetStarter.getWeakClassifiers()) {
+//            knn.preprocessing();
+//        }
 
 
         long startTime = System.currentTimeMillis();
@@ -59,7 +60,7 @@ public class Main {
                 new ArrayList<>(Arrays.asList(SetStarter.getWeakClassifiers())),
                 trainingSet);
 
-        superClassifier.buildModel();
+        superClassifier.buildModel2();
         superClassifier.runOnTestingSet();
         long endTime   = System.currentTimeMillis();
         long totalTime = endTime - startTime;

@@ -64,17 +64,17 @@ public class GenericReader {
     }
 
     public static KNN createClassifier(String[] metadata, int numOfClasses) {
-//        int randomK = ThreadLocalRandom.current().nextInt(1, 15);
-//        if (randomK % 2 == 0) {
-//            randomK++;
-//        }
+        int randomK = ThreadLocalRandom.current().nextInt(3, 27);
+        if (randomK % 2 == 0) {
+            randomK++;
+        }
 
         double [] weights = new double[metadata.length];
         int index = 0;
         for(String s: metadata){
             weights[index++] = Double.parseDouble(s);
         }
-        return new KNN(3, numOfClasses, weights);
+        return new KNN(randomK, numOfClasses, weights);
     }
 
     public static Tuple createTuple(String[] metadata) {

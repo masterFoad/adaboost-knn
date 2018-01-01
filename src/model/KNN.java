@@ -75,14 +75,14 @@ public class KNN {
 
                         }
                     }
-                    distancesPair[o][j] = Math.sqrt(sum);
+                    distancesPair[old.getNum()][newObservation.getNum()] = Math.sqrt(sum);
                 }
             }
         }
     }
 
 
-    public double init(Tuple[] set, Tuple newObservation) {
+    public int init(Tuple[] set, Tuple newObservation) {
         PriorityQueue<TupleDistance> distances = new PriorityQueue<>(set.length);
         int[] classes = new int[this.classes.length];
         Tuple[] k = new Tuple[k_size];
@@ -112,7 +112,7 @@ public class KNN {
 //        for (int o = 0; o < set.length; o++) {
 //            Tuple old = set[o];
 //            if(old.getNum()!=newObservation.getNum()){
-//                distances.add(new TupleDistance(old, (distancesPair[o][newObservation.getNum()] * old.getWeight())));
+//                distances.add(new TupleDistance(old, (distancesPair[old.getNum()][newObservation.getNum()] * old.getWeight())));
 //            }
 //
 //        }
@@ -143,7 +143,7 @@ public class KNN {
         }
 
 
-        return (double) index;
+        return index;
     }
 
     public static void resetId() {

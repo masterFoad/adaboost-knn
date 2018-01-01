@@ -8,8 +8,7 @@ public class ThreadPoolCenter {
     private static RejectedExecutionHandler handler = new ThreadPoolExecutor.CallerRunsPolicy();
     private static ExecutorService executor;
 
-
-    private ThreadPoolCenter(){
+    static{
         executor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.MILLISECONDS, queue, handler);
 
     }
@@ -17,9 +16,9 @@ public class ThreadPoolCenter {
     public static ThreadPoolCenter instance;
 
     public static ExecutorService getExecutor(){
-        if(instance==null){
-            instance = new ThreadPoolCenter();
-        }
+//        if(instance==null){
+//            instance = new ThreadPoolCenter();
+//        }
 
         return executor;
     }
