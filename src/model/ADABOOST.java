@@ -3,10 +3,7 @@ package model;
 
 import model.thread_center.ThreadPoolCenter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.PriorityQueue;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class ADABOOST {
@@ -108,46 +105,20 @@ public class ADABOOST {
         try {
             for (int i = 0; i < classifiers.size(); i++) {
 
+
                 System.out.println("step " + i);
                 //System.out.println(Arrays.stream(tuples).mapToDouble(Tuple::getWeight).sum());
-                priorityKNN.clear();
-                for (KNN k : classifiers) {
-                    k.prepareForNextStep();
-                }
+                KNN lowestErrorClassifier = runClassifiers(priorityKNN, classifiers);
 
-                index = 0;
-                for (int j = 0; j < classifiers.size(); j++) {
-                    CompletableFuture<?>[] futures = initWorkers(classifiers.get(index), tuples).stream()
-                            .map(task -> CompletableFuture.runAsync(task, ThreadPoolCenter.getExecutor()))
-                            .toArray(CompletableFuture[]::new);
-
-
-                    CompletableFuture.allOf(futures).join();
-//                    for (int k = 0; k < classifiers.size(); k++) {
-//                        classifiers.get(index).init(tuples, tuples[k]);
-//
-//                    }
-                    priorityKNN.add(classifiers.get(index));
-                    index++;
-                }
-
-
-                KNN lowestErrorClassifier = priorityKNN.peek();
                 double E = lowestErrorClassifier.getErrorRate();
                 double alpha = (1 - E) / (E);
                 // double alpha = 0.5 * Math.log((1 - E) / (E));
                 System.out.println(lowestErrorClassifier.getNum());
-                Arrays.stream(SetStarter.getTrainingSet()).forEach(t ->
-                        {
-                            if (t.getIsCorrectlyClassified()[lowestErrorClassifier.getNum()]) {
-                                t.setWeight(0.5 * (t.getWeight() / (1 - E)));
-                            } else {
-                                t.setWeight(0.5 * (t.getWeight() / (E)));
-                            }
-                        }
-                );
+
+                initNewWeights(lowestErrorClassifier);
 
                 lowestErrorClassifier.setAlpha(alpha);
+
                 FinalModel.add(new FinalModel(lowestErrorClassifier, lowestErrorClassifier.getAlpha()));
 
                 setOverallErrorRate(0.0);
@@ -155,7 +126,6 @@ public class ADABOOST {
                 for (int j = 0; j < tuples.length; j++) {
                     setOverallErrorRate(getOverallErrorRate() + checkModelValidity(tuples[j]));
                 }
-
 
                 if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e -> e.getErrorRate() > 0.5)) {
                     break;
@@ -168,6 +138,55 @@ public class ADABOOST {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * setting up weights for next step.
+     * @param lowestErrorClassifier
+     */
+    private void initNewWeights(KNN lowestErrorClassifier) {
+        Arrays.stream(SetStarter.getTrainingSet()).forEach(t ->
+                {
+                    if (t.getIsCorrectlyClassified()[lowestErrorClassifier.getNum()]) {
+                        t.setWeight(0.5 * (t.getWeight() / (1 - lowestErrorClassifier.getErrorRate())));
+                    } else {
+                        t.setWeight(0.5 * (t.getWeight() / (lowestErrorClassifier.getErrorRate())));
+                    }
+                }
+        );
+    }
+
+    /**
+     * run classifiers on training set, and return the classifier with the lowest error rate;
+     * multithreaded; will run the classifiers on the trainng set in parallel.
+     * @param priorityKNN
+     * @param classifiers
+     * @return
+     */
+    private KNN runClassifiers(PriorityQueue<KNN> priorityKNN, List<KNN> classifiers) {
+        priorityKNN.clear();
+        for (KNN k : classifiers) {
+            k.prepareForNextStep();
+        }
+
+        index = 0;
+        for (int j = 0; j < classifiers.size(); j++) {
+            CompletableFuture<?>[] futures = initWorkers(classifiers.get(index), tuples).stream()
+                    .map(task -> CompletableFuture.runAsync(task, ThreadPoolCenter.getExecutor()))
+                    .toArray(CompletableFuture[]::new);
+
+
+            CompletableFuture.allOf(futures).join();
+//                    for (int k = 0; k < tuples.length; k++) {
+//                        classifiers.get(index).init(tuples, tuples[k]);
+//
+//                    }
+            priorityKNN.add(classifiers.get(index));
+            index++;
+        }
+
+
+        return priorityKNN.peek();
     }
 
 

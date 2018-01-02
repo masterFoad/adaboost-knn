@@ -87,11 +87,42 @@ public class KNN {
 
     public int init(Tuple[] set, Tuple newObservation) {
         inc();
-//        PriorityQueue<TupleDistance> distances = new PriorityQueue<>();
         PriorityQueue<TupleDistance> distances = new PriorityQueue<>(k_size, Comparator.reverseOrder());
         int[] classes = new int[this.classes.length];
         Tuple[] k = new Tuple[k_size];
 
+        initDistances(set, newObservation, distances);
+
+        getKnns(distances, k);
+
+        int Y = maxClassInNeighborhood(classes, k);
+
+        calculateError(newObservation, Y);
+
+        return Y;
+    }
+
+    /**
+     * getting the closest neighbors from the queue
+     *
+     * @param distances
+     * @param k
+     */
+    private void getKnns(PriorityQueue<TupleDistance> distances, Tuple[] k) {
+        for (int i = 0; i < k.length; i++) {
+            Tuple t = distances.poll().tuple;
+            k[i] = t;
+        }
+    }
+
+    /**
+     * setting up weighted distances, using priority queue to get the k nearest neighbors.
+     *
+     * @param set
+     * @param newObservation
+     * @param distances
+     */
+    private void initDistances(Tuple[] set, Tuple newObservation, PriorityQueue<TupleDistance> distances) {
         for (int o = 0; o < set.length; o++) {
             Tuple old = set[o];
             if (!old.equals(newObservation)) {
@@ -110,48 +141,39 @@ public class KNN {
                 /**
                  * setting the distance according to the weight of the sample
                  */
-//                double curDis = (Math.sqrt(sum) * old.getWeight());
-//                distances.add(new TupleDistance(old, curDis));
-                double curDis = (Math.sqrt(sum) * old.getWeight());
-                if (distances.isEmpty()) {
-                    distances.add(new TupleDistance(old, curDis));
-                } else {
-                    if (distances.size() < k_size) {
-                        distances.add(new TupleDistance(old, curDis));
-                    }
-                    if (distances.size() == k_size){
-                        if(distances.peek().distance > curDis){
-                            distances.poll();
-                            distances.add(new TupleDistance(old, curDis));
-                        }
-                    }
 
-                }
+                double curDis = (Math.sqrt(sum) * old.getWeight());
+                insertPriorityK(distances, curDis, old);
 
             }
         }
+    }
 
-//        for (Tuple old : set) {
-//            if (old.getNum() != newObservation.getNum()) {
-//                distances.add(new TupleDistance(old, (distancesPair[old.getNum()][newObservation.getNum()] * old.getWeight())));
-//            }
-//
-//        }
-
-
-//        int ind = 0;
-//        for(TupleDistance tp : distances){
-//            k[ind++] = tp.tuple;
-//        }
-
-        for (int i = 0; i < k.length; i++) {
-            Tuple t = distances.poll().tuple;
-            k[i] = t;
+    /**
+     * setting the tuple status if it was classified correctly by the current classifier
+     * and calculating error rate
+     *
+     * @param newObservation
+     * @param correctClass
+     */
+    private void calculateError(Tuple newObservation, int correctClass) {
+        if (newObservation.getClassNum() != correctClass) {
+            setErrorRate(getErrorRate() + newObservation.getWeight());
+            newObservation.getIsCorrectlyClassified()[num] = false;
+        } else {
+            newObservation.getIsCorrectlyClassified()[num] = true;
         }
+    }
 
-
-        for (int i = 0; i < k.length; i++) {
-            classes[k[i].getClassNum()]++;
+    /**
+     * counting and returning the highest count of class in k neighbors
+     *
+     * @param classes
+     * @return
+     */
+    private int maxClassInNeighborhood(int[] classes, Tuple[] kNN) {
+        for (int i = 0; i < kNN.length; i++) {
+            classes[kNN[i].getClassNum()]++;
         }
         int max = 0;
         int index = 0;
@@ -162,17 +184,33 @@ public class KNN {
                 index = i;
             }
         }
-
-        //calculating error rate
-        if (newObservation.getClassNum() != index) {
-            setErrorRate(getErrorRate() + newObservation.getWeight());
-            newObservation.getIsCorrectlyClassified()[num] = false;
-        } else {
-            newObservation.getIsCorrectlyClassified()[num] = true;
-        }
-
-
         return index;
+    }
+
+    /**
+     * Priority Queue of KNN tuple, we keep a maximum priority queue, to get minimum K distances in O(n) time in one pass.
+     * building the heap is O(k)
+     *
+     * @param distances
+     * @param distance
+     * @param old
+     */
+    private void insertPriorityK(PriorityQueue<TupleDistance> distances, double distance, Tuple old) {
+        double curDis = distance;
+        if (distances.isEmpty()) {
+            distances.add(new TupleDistance(old, curDis));
+        } else {
+            if (distances.size() < k_size) {
+                distances.add(new TupleDistance(old, curDis));
+            }
+            if (distances.size() == k_size) {
+                if (distances.peek().distance > curDis) {
+                    distances.poll();
+                    distances.add(new TupleDistance(old, curDis));
+                }
+            }
+
+        }
     }
 
     public static void resetId() {
