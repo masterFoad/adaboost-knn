@@ -9,8 +9,10 @@ public class ThreadPoolCenter {
     private static ExecutorService executor;
 
     static{
-        executor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.MILLISECONDS, queue, handler);
-
+       // executor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.MILLISECONDS, queue, handler);
+        executor = new ThreadPoolExecutor(4, 4,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>());
     }
 
     public static ThreadPoolCenter instance;

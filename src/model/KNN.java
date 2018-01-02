@@ -30,6 +30,8 @@ public class KNN {
 
     private volatile double errorRate;
 
+    public static int counter = 0;
+
 
     //TODO change weights to num of classes
     public KNN(int k, int numofClasses, double[] weights) {
@@ -58,10 +60,8 @@ public class KNN {
 
 
     public void initilizeDistances(Tuple[] set, double[][] distancesPair) {
-        for (int o = 0; o < set.length; o++) {
-            Tuple old = set[o];
-            for (int j = 0; j < set.length; j++) {
-                Tuple newObservation = set[j];
+        for (Tuple old : set) {
+            for (Tuple newObservation : set) {
                 if (!old.equals(newObservation)) {
                     double sum = 0.0;
                     for (int i = 0; i < old.getDataVector().length; i++) {
@@ -81,9 +81,14 @@ public class KNN {
         }
     }
 
+    public synchronized void inc() {
+        counter++;
+    }
 
     public int init(Tuple[] set, Tuple newObservation) {
-        PriorityQueue<TupleDistance> distances = new PriorityQueue<>(set.length);
+        inc();
+//        PriorityQueue<TupleDistance> distances = new PriorityQueue<>();
+        PriorityQueue<TupleDistance> distances = new PriorityQueue<>(k_size, Comparator.reverseOrder());
         int[] classes = new int[this.classes.length];
         Tuple[] k = new Tuple[k_size];
 
@@ -105,21 +110,45 @@ public class KNN {
                 /**
                  * setting the distance according to the weight of the sample
                  */
-                distances.add(new TupleDistance(old, (Math.sqrt(sum) * old.getWeight())));
+//                double curDis = (Math.sqrt(sum) * old.getWeight());
+//                distances.add(new TupleDistance(old, curDis));
+                double curDis = (Math.sqrt(sum) * old.getWeight());
+                if (distances.isEmpty()) {
+                    distances.add(new TupleDistance(old, curDis));
+                } else {
+                    if (distances.size() < k_size) {
+                        distances.add(new TupleDistance(old, curDis));
+                    }
+                    if (distances.size() == k_size){
+                        if(distances.peek().distance > curDis){
+                            distances.poll();
+                            distances.add(new TupleDistance(old, curDis));
+                        }
+                    }
+
+                }
+
             }
         }
 
-//        for (int o = 0; o < set.length; o++) {
-//            Tuple old = set[o];
-//            if(old.getNum()!=newObservation.getNum()){
+//        for (Tuple old : set) {
+//            if (old.getNum() != newObservation.getNum()) {
 //                distances.add(new TupleDistance(old, (distancesPair[old.getNum()][newObservation.getNum()] * old.getWeight())));
 //            }
 //
 //        }
 
+
+//        int ind = 0;
+//        for(TupleDistance tp : distances){
+//            k[ind++] = tp.tuple;
+//        }
+
         for (int i = 0; i < k.length; i++) {
-            k[i] = distances.poll().tuple;
+            Tuple t = distances.poll().tuple;
+            k[i] = t;
         }
+
 
         for (int i = 0; i < k.length; i++) {
             classes[k[i].getClassNum()]++;
@@ -209,8 +238,8 @@ public class KNN {
 
 
     private class TupleDistance implements Comparable<TupleDistance> {
-        private Tuple tuple;
-        private double distance;
+        public Tuple tuple;
+        public double distance;
 
         public TupleDistance(Tuple tuple, double distance) {
             this.tuple = tuple;
