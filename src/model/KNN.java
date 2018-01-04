@@ -32,6 +32,10 @@ public class KNN {
 
     public static int counter = 0;
 
+    //TODO static array of distances .. think about the dat vector, we can make it a tree with nodes and apply weights to each child
+    //TODO while keeping the node updated, then we can supply the weighrs of the knn and the weights of the point from the adaboost
+    //TODO sum ((ui-v1)*wi) * wu
+
 
     //TODO change weights to num of classes
     public KNN(int k, int numofClasses, double[] weights) {
@@ -49,37 +53,7 @@ public class KNN {
 
     }
 
-    public void preprocessing() {
-        distancesPair = new double
-                [SetStarter.getTrainingSet().length + SetStarter.getTestingSet().length]
-                [SetStarter.getTrainingSet().length + SetStarter.getTestingSet().length];
 
-        initilizeDistances(SetStarter.getTrainingSet(), distancesPair);
-        initilizeDistances(SetStarter.getTestingSet(), distancesPair);
-    }
-
-
-    public void initilizeDistances(Tuple[] set, double[][] distancesPair) {
-        for (Tuple old : set) {
-            for (Tuple newObservation : set) {
-                if (!old.equals(newObservation)) {
-                    double sum = 0.0;
-                    for (int i = 0; i < old.getDataVector().length; i++) {
-                        if (old.equals(newObservation)) {
-                            continue;
-                        } else {
-
-
-                            sum += (old.getDataVector()[i] - newObservation.getDataVector()[i]) * (old.getDataVector()[i] - newObservation.getDataVector()[i]) * weights[i];
-
-
-                        }
-                    }
-                    distancesPair[old.getNum()][newObservation.getNum()] = Math.sqrt(sum);
-                }
-            }
-        }
-    }
 
     public synchronized void inc() {
         counter++;
@@ -298,25 +272,43 @@ public class KNN {
         }
     }
 
-
-    private class PairsDistance implements Comparable<Tuple> {
-
-        private int t1Num;
-        private int t2Num;
-        private double distance;
-
-        public PairsDistance(int t1Num, int t2Num, double distance) {
-            this.t1Num = t1Num;
-            this.t2Num = t2Num;
-            this.distance = distance;
-        }
-
-
-        @Override
-        public int compareTo(Tuple o) {
-            return 0;
-        }
+    public int getK_size() {
+        return k_size;
     }
+
+    //**********not used**********//
+
+//    public void preprocessing() {
+//        distancesPair = new double
+//                [SetStarter.getTrainingSet().length + SetStarter.getTestingSet().length]
+//                [SetStarter.getTrainingSet().length + SetStarter.getTestingSet().length];
+//
+//        initilizeDistances(SetStarter.getTrainingSet(), distancesPair);
+//        initilizeDistances(SetStarter.getTestingSet(), distancesPair);
+//    }
+//
+//
+//    public void initilizeDistances(Tuple[] set, double[][] distancesPair) {
+//        for (Tuple old : set) {
+//            for (Tuple newObservation : set) {
+//                if (!old.equals(newObservation)) {
+//                    double sum = 0.0;
+//                    for (int i = 0; i < old.getDataVector().length; i++) {
+//                        if (old.equals(newObservation)) {
+//                            continue;
+//                        } else {
+//
+//
+//                            sum += (old.getDataVector()[i] - newObservation.getDataVector()[i]) * (old.getDataVector()[i] - newObservation.getDataVector()[i]) * weights[i];
+//
+//
+//                        }
+//                    }
+//                    distancesPair[old.getNum()][newObservation.getNum()] = Math.sqrt(sum);
+//                }
+//            }
+//        }
+//    }
 
 
 }

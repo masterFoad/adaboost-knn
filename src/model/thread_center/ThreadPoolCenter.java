@@ -10,7 +10,7 @@ public class ThreadPoolCenter {
 
     static{
        // executor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.MILLISECONDS, queue, handler);
-        executor = new ThreadPoolExecutor(10, 10,
+        executor = new ThreadPoolExecutor(4, 4,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>());
     }

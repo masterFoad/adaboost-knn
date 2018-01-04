@@ -34,6 +34,13 @@ public class Tuple{
         this.isCorrectlyClassified = new boolean[SetStarter.getWeakClassifiers().length];
     }
 
+    public Tuple createResultClone(double[] dataVector, int classNum){
+        Tuple clone = new Tuple(dataVector.length);
+        clone.setDataVector(dataVector);
+        clone.setClassNum(classNum);
+        return clone;
+    }
+
     public double[] getDataVector() {
         return dataVector;
     }
@@ -61,6 +68,10 @@ public class Tuple{
 
     public boolean[] getIsCorrectlyClassified() {
         return isCorrectlyClassified;
+    }
+
+    public void setDataVector(double[] dataVector) {
+        this.dataVector = dataVector;
     }
 
     @Override

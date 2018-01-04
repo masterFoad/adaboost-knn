@@ -1,6 +1,7 @@
 package model;
 
 
+import javafx.util.Pair;
 import model.thread_center.ThreadPoolCenter;
 
 import java.util.*;
@@ -16,89 +17,22 @@ public class ADABOOST {
     private volatile double overallErrorRate = 0.0;
     private volatile int countTrue = 0;
 
+
+    private ArrayList<Pair<Tuple, Tuple>> finalResultsForTesting;
+    private ArrayList<Pair<Tuple, Tuple>> finalResultsForTraining;
+
     public ADABOOST(ArrayList<KNN> classifiers, Tuple[] tuples) {
         this.classifiers = classifiers;
         this.tuples = tuples;
         this.priorityKNN = new PriorityQueue<>(classifiers.size(), Comparator.comparingDouble(KNN::getErrorRate));
         this.FinalModel = new ArrayList<>();
+        this.finalResultsForTesting = new ArrayList<>();
+        this.finalResultsForTraining = new ArrayList<>();
     }
 
-    public void buildModel() throws InterruptedException {
-
-        System.out.println("printing initial weights:");
-        for (int i = 0; i < SetStarter.getTrainingSet().length; i++) {
-            SetStarter.getTrainingSet()[i].setWeight(1.0 / (double) SetStarter.getTrainingSet().length);
-        }
-        try {
-            for (int i = 0; i < classifiers.size(); i++) {
-
-                System.out.println("step " + i);
-                //System.out.println(Arrays.stream(tuples).mapToDouble(Tuple::getWeight).sum());
-                priorityKNN.clear();
-                for (KNN k : classifiers) {
-                    k.prepareForNextStep();
-                }
-
-                index = 0;
-                for (int j = 0; j < classifiers.size(); j++) {
-                    CompletableFuture<?>[] futures = initWorkers(classifiers.get(index), tuples).stream()
-                            .map(task -> CompletableFuture.runAsync(task, ThreadPoolCenter.getExecutor()))
-                            .toArray(CompletableFuture[]::new);
-
-
-                    CompletableFuture.allOf(futures).join();
-//                    for (int k = 0; k < classifiers.size(); k++) {
-//                        classifiers.get(index).init(tuples, tuples[k]);
-//
-//                    }
-                    priorityKNN.add(classifiers.get(index));
-                    index++;
-                }
-
-
-                KNN lowestErrorClassifier = priorityKNN.peek();
-                double E = lowestErrorClassifier.getErrorRate();
-                double alpha = (1 - E) / (E);
-                // double alpha = 0.5 * Math.log((1 - E) / (E));
-                System.out.println(lowestErrorClassifier.getNum());
-                Arrays.stream(SetStarter.getTrainingSet()).forEach(t ->
-                        {
-                            if (t.getIsCorrectlyClassified()[lowestErrorClassifier.getNum()]) {
-                                t.setWeight(0.5 * (t.getWeight() / (1 - E)));
-                            } else {
-                                t.setWeight(0.5 * (t.getWeight() / (E)));
-                            }
-                        }
-                );
-
-                lowestErrorClassifier.setAlpha(alpha);
-                FinalModel.add(new FinalModel(lowestErrorClassifier, lowestErrorClassifier.getAlpha()));
-
-                setOverallErrorRate(0.0);
-
-                for (int j = 0; j < tuples.length; j++) {
-                    setOverallErrorRate(getOverallErrorRate() + checkModelValidity(tuples[j]));
-                }
-
-
-                if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e -> e.getErrorRate() > 0.5)) {
-                    break;
-                }
-            }
-
-            System.out.println(1 - ((overallErrorRate / (double) tuples.length)));
-            System.out.println(getFinalModel());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    @SuppressWarnings("Duplicates")
     public void buildModel2() {
 
-        System.out.println("printing initial weights:");
+//        System.out.println("printing initial weights:");
         for (int i = 0; i < SetStarter.getTrainingSet().length; i++) {
             SetStarter.getTrainingSet()[i].setWeight(1.0 / (double) SetStarter.getTrainingSet().length);
         }
@@ -106,14 +40,14 @@ public class ADABOOST {
             for (int i = 0; i < classifiers.size(); i++) {
 
 
-                System.out.println("step " + i);
+//                System.out.println("step " + i);
                 //System.out.println(Arrays.stream(tuples).mapToDouble(Tuple::getWeight).sum());
                 KNN lowestErrorClassifier = runClassifiers(priorityKNN, classifiers);
 
                 double E = lowestErrorClassifier.getErrorRate();
                 double alpha = (1 - E) / (E);
                 // double alpha = 0.5 * Math.log((1 - E) / (E));
-                System.out.println(lowestErrorClassifier.getNum());
+//                System.out.println(lowestErrorClassifier.getNum());
 
                 initNewWeights(lowestErrorClassifier);
 
@@ -123,8 +57,9 @@ public class ADABOOST {
 
                 setOverallErrorRate(0.0);
 
+                finalResultsForTraining.clear();
                 for (int j = 0; j < tuples.length; j++) {
-                    setOverallErrorRate(getOverallErrorRate() + checkModelValidity(tuples[j]));
+                    setOverallErrorRate(getOverallErrorRate() + checkModelValidity(tuples[j], finalResultsForTraining));
                 }
 
                 if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e -> e.getErrorRate() > 0.5)) {
@@ -132,8 +67,8 @@ public class ADABOOST {
                 }
             }
 
-            System.out.println(1 - ((overallErrorRate / (double) tuples.length)));
-            System.out.println(getFinalModel());
+//            System.out.println(1 - ((overallErrorRate / (double) tuples.length)));
+//            System.out.println(getFinalModel());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -142,6 +77,7 @@ public class ADABOOST {
 
     /**
      * setting up weights for next step.
+     *
      * @param lowestErrorClassifier
      */
     private void initNewWeights(KNN lowestErrorClassifier) {
@@ -159,6 +95,7 @@ public class ADABOOST {
     /**
      * run classifiers on training set, and return the classifier with the lowest error rate;
      * multithreaded; will run the classifiers on the trainng set in parallel.
+     *
      * @param priorityKNN
      * @param classifiers
      * @return
@@ -190,7 +127,7 @@ public class ADABOOST {
     }
 
 
-    public synchronized int checkModelValidity(Tuple t) {
+    public synchronized int checkModelValidity(Tuple t, List<Pair<Tuple, Tuple>> finalResults) {
 
 
         double[] finalSums = new double[4];
@@ -209,6 +146,7 @@ public class ADABOOST {
             }
         }
 
+        finalResults.add(new Pair<>(t, t.createResultClone(t.getDataVector(), index)));
 
         if (t.getClassNum() != index) {
             // System.out.println("got it wrong");
@@ -221,7 +159,7 @@ public class ADABOOST {
     }
 
 
-    public void runOnTestingSet() throws InterruptedException {
+    public double runOnTestingSet() throws InterruptedException {
 
         ArrayList<Runnable> runnables = new ArrayList<>();
         setCountTrue(0);
@@ -235,8 +173,9 @@ public class ADABOOST {
 //                setCountTrue(getCountTrue() + checkModelValidity(SetStarter.getTestingSet()[i]));
 //            }
         });
+        finalResultsForTesting.clear();
         for (int i = 0; i < SetStarter.getTestingSet().length; i++) {
-            setCountTrue(getCountTrue() + checkModelValidity(SetStarter.getTestingSet()[i]));
+            setCountTrue(getCountTrue() + checkModelValidity(SetStarter.getTestingSet()[i], finalResultsForTesting));
         }
 
 //        CompletableFuture<?>[] futures = runnables.stream()
@@ -246,7 +185,7 @@ public class ADABOOST {
 //
 //        CompletableFuture.allOf(futures).join();
 
-        System.out.println(getCountTrue() / (double) SetStarter.getTestingSet().length);
+        return getCountTrue() / (double) SetStarter.getTestingSet().length;
 
     }
 
@@ -322,11 +261,71 @@ public class ADABOOST {
         public String toString() {
             return "FinalModel{" +
                     "knn=" + knn.getNum() +
+                    "k=" + this.knn.getK_size() +
                     ", alpha=" + alpha +
                     '}';
         }
     }
 
+    public StringBuilder getFinalReport() {
+        StringBuilder report = new StringBuilder();
+
+        report.append("Final Report:");
+        report.append(System.getProperty("line.separator"));
+        report.append("Training data size: " + SetStarter.getTrainingSet().length)
+                .append(System.getProperty("line.separator"));
+        report.append("Final Model: ").append(System.getProperty("line.separator")).append(getFinalModel().toString());
+        report.append(System.getProperty("line.separator"));
+        report.append("Number of correctly classified training data class 1:").append(System.getProperty("line.separator"));
+        report.append(finalResultsForTraining.stream().filter(e -> e.getValue().getClassNum() == 1 && e.getKey().getClassNum() == e.getValue().getClassNum()).count());
+        report.append(System.getProperty("line.separator"));
+        report.append("Number of incorrectly classified training data class 1:").append(System.getProperty("line.separator"));
+        report.append(finalResultsForTraining.stream().filter(e -> e.getValue().getClassNum() == 1 && e.getKey().getClassNum() != e.getValue().getClassNum()).count());
+
+
+        report.append(System.getProperty("line.separator"));
+        report.append("Number of correctly classified training data class 2:").append(System.getProperty("line.separator"));
+        report.append(finalResultsForTraining.stream().filter(e -> e.getValue().getClassNum() == 2 && e.getKey().getClassNum() == e.getValue().getClassNum()).count());
+        report.append(System.getProperty("line.separator"));
+        report.append("Number of incorrectly classified training data class 2:").append(System.getProperty("line.separator"));
+        report.append(finalResultsForTraining.stream().filter(e -> e.getValue().getClassNum() == 2 && e.getKey().getClassNum() != e.getValue().getClassNum()).count());
+
+        report.append(System.getProperty("line.separator"));
+        report.append("Training Error Rate: " + (1 - getOverallErrorRate() / (double) SetStarter.getTrainingSet().length));
+
+        report.append(System.getProperty("line.separator"));
+        report.append("Testing: ");
+        report.append(System.getProperty("line.separator"));
+        report.append("testing data size: " + SetStarter.getTestingSet().length)
+                .append(System.getProperty("line.separator"));
+        report.append("Number of correctly classified testing data class 1:").append(System.getProperty("line.separator"));
+        report.append(finalResultsForTesting.stream().filter(e -> e.getValue().getClassNum() == 1 && e.getKey().getClassNum() == e.getValue().getClassNum()).count());
+        report.append(System.getProperty("line.separator"));
+        report.append("Number of incorrectly classified testing data class 1:").append(System.getProperty("line.separator"));
+        report.append(finalResultsForTesting.stream().filter(e -> e.getValue().getClassNum() == 1 && e.getKey().getClassNum() != e.getValue().getClassNum()).count());
+
+
+        report.append(System.getProperty("line.separator"));
+        report.append("Number of correctly classified testing data class 2:").append(System.getProperty("line.separator"));
+        report.append(finalResultsForTesting.stream().filter(e -> e.getValue().getClassNum() == 2 && e.getKey().getClassNum() == e.getValue().getClassNum()).count());
+        report.append(System.getProperty("line.separator"));
+        report.append("Number of incorrectly classified testing data class 2:").append(System.getProperty("line.separator"));
+        report.append(finalResultsForTesting.stream().filter(e -> e.getValue().getClassNum() == 2 && e.getKey().getClassNum() != e.getValue().getClassNum()).count());
+
+        report.append(System.getProperty("line.separator"));
+        report.append("Testing Error Rate: " + (1 - countTrue / (double) SetStarter.getTestingSet().length));
+
+
+        return report;
+    }
+
+    public ArrayList<Pair<Tuple, Tuple>> getFinalResultsForTesting() {
+        return finalResultsForTesting;
+    }
+
+    public ArrayList<Pair<Tuple, Tuple>> getFinalResultsForTraining() {
+        return finalResultsForTraining;
+    }
 
     private static class RunnableFactory {
 

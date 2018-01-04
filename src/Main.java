@@ -20,17 +20,6 @@ public class Main {
 //        GenericReader.buildModel("/data1.csv", 0, (metaData, numOfClasses) -> GenericReader.createTuple(metaData));
 
 
-        SetStarter.initKNNs(GenericReader.init("/weights.csv", 2, (metaData, numOfClasses) -> GenericReader.createClassifier(metaData, numOfClasses)).toArray(new KNN[0]));
-        // reading the data from csv
-        SetStarter
-                .divide(
-                        GenericReader.init("/data1.csv",
-                                0,
-                                (metaData, numOfClasses) -> GenericReader.createTuple(metaData)).toArray(new Tuple[0]),
-                        0.66);
-
-        Tuple[] trainingSet = SetStarter.getTrainingSet();
-        Tuple[] testingSet = SetStarter.getTestingSet();
 //
 
 //        for (KNN knn : SetStarter.getWeakClassifiers()) {
@@ -39,7 +28,25 @@ public class Main {
 
         int totalTotal = 0;
 
-//        for (int oo = 0; oo < 5; oo++) {
+
+        //44 - random k --- 7 > 0.87
+        //50 - k=3 --- 15
+        for (int oo = 0; oo < 50; oo++) {
+
+
+
+            SetStarter.initKNNs(GenericReader.init("/weights.csv", 2, (metaData, numOfClasses) -> GenericReader.createClassifier(metaData, numOfClasses)).toArray(new KNN[0]));
+            // reading the data from csv
+            SetStarter
+                    .divide(
+                            GenericReader.init("/data1.csv",
+                                    0,
+                                    (metaData, numOfClasses) -> GenericReader.createTuple(metaData)).toArray(new Tuple[0]),
+                            0.66);
+
+
+            Tuple[] trainingSet = SetStarter.getTrainingSet();
+            Tuple[] testingSet = SetStarter.getTestingSet();
             for (int i = 0; i < trainingSet.length; i++) {
                 trainingSet[i].setWeight(1.0 / (double) trainingSet.length);
             }
@@ -70,12 +77,14 @@ public class Main {
             System.out.println(totalTime);
 
             System.out.println(KNN.counter);
-            superClassifier.runOnTestingSet();
+            if(superClassifier.runOnTestingSet()>=0.87){
+                System.out.println(superClassifier.getFinalModel());
+            }
 
 
 
 
-//        }
+        }
 
 //        System.out.println("total total : "+ ((double)totalTotal/5));
 
