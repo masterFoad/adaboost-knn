@@ -16,81 +16,28 @@ public class Main {
     public static void main(String args[]) throws InterruptedException {
 
 
-        //  ArrayList<KNN> knn = GenericReader.buildModel(KNN.class,"/data1.csv", 2, (metaData, numOfClasses) -> GenericReader.createClassifier(metaData, numOfClasses));
-//        GenericReader.buildModel("/data1.csv", 0, (metaData, numOfClasses) -> GenericReader.createTuple(metaData));
+      long startTime = System.currentTimeMillis();
+        ADABOOST superClassifier = ADABOOST.create("/weights1.csv", "/data1.csv", 2, 0.9);
+//        ADABOOST superClassifier = ADABOOST.create("/weights2.csv", "/data2.csv", 2, 0.9);
+//        ADABOOST superClassifier = ADABOOST.create("/weights3.csv", "/data3.csv", 3, 0.9);
 
 
-//
+        superClassifier.buildModel();
+        //superClassifier.runOnTestingSet();
+        long endTime = System.currentTimeMillis();
+        long totalTime = endTime - startTime;
+        System.out.println(totalTime);
 
-//        for (KNN knn : SetStarter.getWeakClassifiers()) {
-//            knn.preprocessing();
+        System.out.println(KNN.counter);
+        //superClassifier.runOnTestingSet();
+
+
 //        }
-
-        int totalTotal = 0;
-
-
-        //44 - random k --- 7 > 0.87
-        //50 - k=3 --- 15
-        for (int oo = 0; oo < 50; oo++) {
-
-
-
-            SetStarter.initKNNs(GenericReader.init("/weights.csv", 2, (metaData, numOfClasses) -> GenericReader.createClassifier(metaData, numOfClasses)).toArray(new KNN[0]));
-            // reading the data from csv
-            SetStarter
-                    .divide(
-                            GenericReader.init("/data1.csv",
-                                    0,
-                                    (metaData, numOfClasses) -> GenericReader.createTuple(metaData)).toArray(new Tuple[0]),
-                            0.66);
-
-
-            Tuple[] trainingSet = SetStarter.getTrainingSet();
-            Tuple[] testingSet = SetStarter.getTestingSet();
-            for (int i = 0; i < trainingSet.length; i++) {
-                trainingSet[i].setWeight(1.0 / (double) trainingSet.length);
-            }
-
-//        KNN knn = SetStarter.getWeakClassifiers()[0];
-//        for (int i = 0; i < SetStarter.getTrainingSet().length; i++) {
-////            System.out.println(trainingSet[i]);
-////            System.out.println(knn.init(trainingSet, trainingSet[i]));
-//            knn.init(trainingSet, trainingSet[i]);
-//        }
-
-
-            for (int i = 0; i < testingSet.length; i++) {
-                testingSet[i].setWeight(1.0);
-            }
-
-
-            long startTime = System.currentTimeMillis();
-            ADABOOST superClassifier = new ADABOOST(
-                    new ArrayList<>(Arrays.asList(SetStarter.getWeakClassifiers())),
-                    trainingSet);
-
-            superClassifier.buildModel2();
-            //superClassifier.runOnTestingSet();
-            long endTime = System.currentTimeMillis();
-            long totalTime = endTime - startTime;
-            totalTotal += totalTime;
-            System.out.println(totalTime);
-
-            System.out.println(KNN.counter);
-            if(superClassifier.runOnTestingSet()>=0.87){
-                System.out.println(superClassifier.getFinalModel());
-            }
-
-
-
-
-        }
 
 //        System.out.println("total total : "+ ((double)totalTotal/5));
-
+        System.out.println(superClassifier.getFinalReport().toString());
         final List<Runnable> rejected = ThreadPoolCenter.getExecutor().shutdownNow();
-        System.out.println(("Rejected tasks: {} "+ rejected.size()));
-        //ThreadPoolCenter.closeThreadPool();
+        System.out.println(("Rejected tasks: {} " + rejected.size()));
 
         // 2816 5 threads
         // 2575 3 threads

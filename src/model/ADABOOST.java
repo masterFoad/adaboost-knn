@@ -1,6 +1,7 @@
 package model;
 
 
+import common.GenericReader;
 import javafx.util.Pair;
 import model.thread_center.ThreadPoolCenter;
 
@@ -11,64 +12,94 @@ public class ADABOOST {
 
     private ArrayList<KNN> classifiers;
     private PriorityQueue<KNN> priorityKNN;
-    private ArrayList<FinalModel> FinalModel;
+    private ArrayList<FinalModel> finalModel;
     private Tuple[] tuples;
     private static volatile int index;
     private volatile double overallErrorRate = 0.0;
     private volatile int countTrue = 0;
+    private ArrayList<ArrayList<FinalModel>> finalALlModels;
+//    private int kIterations;
 
+    private ArrayList<Double> saveErrorOfTests;
+
+    private double K;
 
     private ArrayList<Pair<Tuple, Tuple>> finalResultsForTesting;
     private ArrayList<Pair<Tuple, Tuple>> finalResultsForTraining;
 
-    public ADABOOST(ArrayList<KNN> classifiers, Tuple[] tuples) {
+    public ADABOOST(ArrayList<KNN> classifiers, Tuple[] tuples, int numOfClasses) {
         this.classifiers = classifiers;
         this.tuples = tuples;
         this.priorityKNN = new PriorityQueue<>(classifiers.size(), Comparator.comparingDouble(KNN::getErrorRate));
-        this.FinalModel = new ArrayList<>();
+        this.finalModel = new ArrayList<>();
         this.finalResultsForTesting = new ArrayList<>();
         this.finalResultsForTraining = new ArrayList<>();
+//        this.kIterations = kIterations;
+        this.finalALlModels = new ArrayList<>();
+        this.K = (double) numOfClasses;
+        this.saveErrorOfTests = new ArrayList<>();
     }
 
-    public void buildModel2() {
+    public void buildModel() {
 
 //        System.out.println("printing initial weights:");
-        for (int i = 0; i < SetStarter.getTrainingSet().length; i++) {
-            SetStarter.getTrainingSet()[i].setWeight(1.0 / (double) SetStarter.getTrainingSet().length);
-        }
+
         try {
-            for (int i = 0; i < classifiers.size(); i++) {
+//            for (int kFolds = 0; kFolds < kIterations; kFolds++) {
+            //will loop until all data is validated
+            while (true) {
+//                resetDataWeights();
+                System.out.println("K fold next");
 
+//                resetDataWeights();
 
+                for (int i = 0; i < classifiers.size(); i++) {
+
+//                    System.out.println("step "+i);
 //                System.out.println("step " + i);
-                //System.out.println(Arrays.stream(tuples).mapToDouble(Tuple::getWeight).sum());
-                KNN lowestErrorClassifier = runClassifiers(priorityKNN, classifiers);
+                    //System.out.println(Arrays.stream(tuples).mapToDouble(Tuple::getWeight).sum());
+                    KNN lowestErrorClassifier = runClassifiers(priorityKNN, classifiers);
 
-                double E = lowestErrorClassifier.getErrorRate();
-                double alpha = (1 - E) / (E);
-                // double alpha = 0.5 * Math.log((1 - E) / (E));
+                    double E = lowestErrorClassifier.getErrorRate();
+                    double alpha = ((1 - E) / (E)) * (K - 1);
+                    // double alpha = 0.5 * Math.log((1 - E) / (E));
 //                System.out.println(lowestErrorClassifier.getNum());
 
-                initNewWeights(lowestErrorClassifier);
+                    initNewWeights(lowestErrorClassifier);
 
-                lowestErrorClassifier.setAlpha(alpha);
+                    lowestErrorClassifier.setAlpha(alpha);
 
-                FinalModel.add(new FinalModel(lowestErrorClassifier, lowestErrorClassifier.getAlpha()));
+                    finalModel.add(new FinalModel(lowestErrorClassifier, lowestErrorClassifier.getAlpha()));
 
-                setOverallErrorRate(0.0);
+                    setOverallErrorRate(0.0);
 
-                finalResultsForTraining.clear();
-                for (int j = 0; j < tuples.length; j++) {
-                    setOverallErrorRate(getOverallErrorRate() + checkModelValidity(tuples[j], finalResultsForTraining));
+                    finalResultsForTraining.clear();
+                    for (int j = 0; j < tuples.length; j++) {
+                        setOverallErrorRate(getOverallErrorRate() + checkModelValidity(tuples[j], finalResultsForTraining));
+                    }
+
+                    System.out.println((1 - ((overallErrorRate / (double) tuples.length))));
+
+                    /**
+                     * if the error rate is bigger than 1-(1/k) means the classifier is no longer a weak classifier, because its worst than random.
+                     */
+                    if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e -> e.getErrorRate() > 1 - (1 / K))) {
+                        break;
+                    }
                 }
+//                finalALlModels
 
-                if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e -> e.getErrorRate() > 0.5)) {
+                saveErrorOfTests.add(runOnTestingSet());
+
+                if (!SetStarter.nextFold()) {
                     break;
                 }
+
             }
 
 //            System.out.println(1 - ((overallErrorRate / (double) tuples.length)));
 //            System.out.println(getFinalModel());
+            System.out.println(saveErrorOfTests.stream().mapToDouble(e -> e.doubleValue()).average());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -84,12 +115,41 @@ public class ADABOOST {
         Arrays.stream(SetStarter.getTrainingSet()).forEach(t ->
                 {
                     if (t.getIsCorrectlyClassified()[lowestErrorClassifier.getNum()]) {
-                        t.setWeight(0.5 * (t.getWeight() / (1 - lowestErrorClassifier.getErrorRate())));
+                        t.setWeight((1 / K) * (t.getWeight() / (1 - lowestErrorClassifier.getErrorRate())));
                     } else {
-                        t.setWeight(0.5 * (t.getWeight() / (lowestErrorClassifier.getErrorRate())));
+                        t.setWeight(((K - 1) / K) * (t.getWeight() / (lowestErrorClassifier.getErrorRate())));
                     }
                 }
         );
+    }
+
+    public static ADABOOST create(String weightsPath, String dataPath, int numberOfClasses, double cvPercent) {
+
+        SetStarter.initKNNs(GenericReader.init(weightsPath, numberOfClasses, (metaData, numOfClasses) -> GenericReader.createClassifier(metaData, numOfClasses)).toArray(new KNN[0]));
+        // reading the data from csv
+        SetStarter
+                .initialDivision(
+                        GenericReader.init(dataPath,
+                                0,
+                                (metaData, numOfClasses) -> GenericReader.createTuple(metaData)).toArray(new Tuple[0]),
+                        cvPercent);
+
+
+        Tuple[] trainingSet = SetStarter.getTrainingSet();
+        Tuple[] testingSet = SetStarter.getTestingSet();
+        for (int i = 0; i < trainingSet.length; i++) {
+            trainingSet[i].setWeight(1.0 / (double) trainingSet.length);
+        }
+
+        for (int i = 0; i < testingSet.length; i++) {
+            testingSet[i].setWeight(1.0);
+        }
+
+        long startTime = System.currentTimeMillis();
+        return new ADABOOST(
+                new ArrayList<>(Arrays.asList(SetStarter.getWeakClassifiers()))
+                , trainingSet
+                , numberOfClasses);
     }
 
     /**
@@ -126,13 +186,21 @@ public class ADABOOST {
         return priorityKNN.peek();
     }
 
+    private void resetDataWeights() {
+        for (int i = 0; i < SetStarter.getTrainingSet().length; i++) {
+            SetStarter.getTrainingSet()[i].setWeight(1.0 / (double) SetStarter.getAllData().length);
+        }
+        for (int i = 0; i < SetStarter.getTestingSet().length; i++) {
+            SetStarter.getTrainingSet()[i].setWeight(1.0 / (double) SetStarter.getAllData().length);
+        }
+    }
 
     public synchronized int checkModelValidity(Tuple t, List<Pair<Tuple, Tuple>> finalResults) {
 
 
-        double[] finalSums = new double[4];
+        double[] finalSums = new double[(int) K + 1];
         Arrays.setAll(finalSums, e -> 1.0);
-        for (FinalModel finalModel : FinalModel) {
+        for (FinalModel finalModel : finalModel) {
             finalSums[finalModel.knn.init(tuples, t)] *= finalModel.alpha;
         }
 
@@ -185,7 +253,7 @@ public class ADABOOST {
 //
 //        CompletableFuture.allOf(futures).join();
 
-        return getCountTrue() / (double) SetStarter.getTestingSet().length;
+        return 1.0 - (double) getCountTrue() / (double) SetStarter.getTestingSet().length;
 
     }
 
@@ -210,7 +278,7 @@ public class ADABOOST {
     }
 
     public ArrayList<FinalModel> getFinalModel() {
-        return FinalModel;
+        return finalModel;
     }
 
     public Tuple[] getTuples() {
@@ -259,7 +327,7 @@ public class ADABOOST {
 
         @Override
         public String toString() {
-            return "FinalModel{" +
+            return "finalModel{" +
                     "knn=" + knn.getNum() +
                     "k=" + this.knn.getK_size() +
                     ", alpha=" + alpha +
