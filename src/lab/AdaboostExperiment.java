@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class AdaboostExperiment {
 
-    private Map<Integer, int[][]> confusionMatrixForFoldTRAINING;
+    private Map<Pair<Integer, Integer>, int[][]> confusionMatrixForFoldTRAINING;
     private Map<Integer, int[][]> confusionMatrixForFoldTESTING;
     private ADABOOST superClassifier;
     private int numOfClasses;
@@ -27,10 +27,11 @@ public class AdaboostExperiment {
 
         //+1 for good measures
         int foldSize = (int) (SetStarter.getAllData().length / (SetStarter.getAllData().length * cvPercent)) + 1;
-        for (int i = 0; i < foldSize + 1; i++) {
-            confusionMatrixForFoldTRAINING.put(i, new int[numberOfClasses + 1][numberOfClasses + 1]);
+        for (int i = 0; i < 15; i++) {
             confusionMatrixForFoldTESTING.put(i, new int[numberOfClasses + 1][numberOfClasses + 1]);
         }
+
+
 
     }
 
@@ -38,7 +39,15 @@ public class AdaboostExperiment {
         superClassifier.buildModel();
     }
 
-    public Map<Integer, int[][]> getConfusionMatrixForTRAINING() {
+    public Map<Pair<Integer, Integer>, int[][]> getConfusionMatrixForTRAINING() {
+        //TODO LATER
+        for (int i = 0; i < 15; i++) {
+            for (int j = 0; j < 201; j++) {
+                confusionMatrixForFoldTRAINING.put(new Pair<>(i,j), new int[numOfClasses + 1][numOfClasses + 1]);
+            }
+
+        }
+
         confusionMatrixForFoldTRAINING.forEach((k, v) -> {
             for (int i = 1; i < numOfClasses + 1; i++) {
                 v[0][i] = i;
@@ -46,16 +55,18 @@ public class AdaboostExperiment {
             }
         });
 
-        for (Pair<Integer, Pair<Tuple, Integer>> foldTupleResult :
+        for (Pair<Pair<Integer, Integer>, Pair<Tuple, Integer>> foldTupleResult :
                 superClassifier.getPredictedTraining()) {
-            int foldNum = foldTupleResult.getKey().intValue();
+            int foldNum = foldTupleResult.getKey().getKey().intValue();
+            int trainingIteration = foldTupleResult.getKey().getValue().intValue();
             int actualClass = foldTupleResult.getValue().getKey().getClassNum();
             int predictedClass = foldTupleResult.getValue().getValue();
-            if (confusionMatrixForFoldTRAINING.get(foldNum)[actualClass][predictedClass] == 0) {
-                confusionMatrixForFoldTRAINING.get(foldNum)[actualClass][predictedClass]++;
+            Pair<Integer, Integer> index = new Pair<>(foldNum, trainingIteration);
+            if (confusionMatrixForFoldTRAINING.get(index)[actualClass][predictedClass] == 0) {
+                confusionMatrixForFoldTRAINING.get(index)[actualClass][predictedClass]++;
             } else {
-                confusionMatrixForFoldTRAINING.get(foldNum)[actualClass][predictedClass] =
-                        confusionMatrixForFoldTRAINING.get(foldNum)[actualClass][predictedClass] + 1;
+                confusionMatrixForFoldTRAINING.get(index)[actualClass][predictedClass] =
+                        confusionMatrixForFoldTRAINING.get(index)[actualClass][predictedClass] + 1;
             }
 
 
@@ -90,5 +101,7 @@ public class AdaboostExperiment {
         return confusionMatrixForFoldTESTING;
     }
 
-
+    public ADABOOST getSuperClassifier() {
+        return superClassifier;
+    }
 }

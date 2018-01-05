@@ -1,5 +1,6 @@
 import common.GenericReader;
 import common.Utils;
+import javafx.util.Pair;
 import lab.AdaboostExperiment;
 import model.ADABOOST;
 import model.KNN;
@@ -18,15 +19,35 @@ public class Main {
     public static void main(String args[]) throws InterruptedException {
 
 
-      long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
 //        ADABOOST superClassifier = ADABOOST.create("/weights1.csv", "/data1.csv", 2, 0.9);
 //        ADABOOST superClassifier = ADABOOST.create("/weights2.csv", "/data2.csv", 2, 0.9);
 //        ADABOOST superClassifier = ADABOOST.create("/weights3.csv", "/data3.csv", 3, 0.9);
 
 
-      AdaboostExperiment exp1 = new AdaboostExperiment("/weights1.csv", "/data1.csv", 2, 0.9);
-      exp1.start();
-      Utils.printMatrix(exp1.getConfusionMatrixForTRAINING().get(2));
+        AdaboostExperiment exp1 = new AdaboostExperiment("/weights1.csv", "/data1.csv", 2, 0.9);
+        exp1.start();
+
+        exp1.getSuperClassifier().getPredictedTraining();
+
+
+        exp1.getConfusionMatrixForTRAINING().forEach((k, v) -> {
+            if (v[1][1] > 0) {
+                System.out.println("training in step: " + k.getKey().intValue() + " " + k.getValue().intValue());
+                Utils.printMatrix(v);
+                System.out.println("");
+            }
+
+        });
+
+        exp1.getConfusionMatrixForTESTING().forEach((k, v) -> {
+            if (v[1][1] > 0) {
+                System.out.println("testing in step: " + k.intValue());
+                Utils.printMatrix(v);
+                System.out.println("");
+            }
+        });
+
 
         //superClassifier.runOnTestingSet();
         long endTime = System.currentTimeMillis();

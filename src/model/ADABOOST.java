@@ -27,10 +27,10 @@ public class ADABOOST {
     private int numberOfFolds;
 
     /**
-     * <fold count, <tuple, classified as>>
-     * <Pair<Integer, Pair<Tuple, Integer>>
+     * <<foldIteration, trainingIteratoinInFold>, <tuple, classified as>>
+     * <Pair<Pair<Integer,Integer>, Pair<Tuple, Integer>>>
      */
-    private ArrayList<Pair<Integer, Pair<Tuple, Integer>>> predictedTraining;
+    private ArrayList<Pair<Pair<Integer,Integer>, Pair<Tuple, Integer>>> predictedTraining;
     private ArrayList<Pair<Integer, Pair<Tuple, Integer>>> predictedTesting;
 
     public ADABOOST(ArrayList<KNN> classifiers, Tuple[] tuples, int numOfClasses) {
@@ -49,13 +49,15 @@ public class ADABOOST {
 
     public void buildModel() {
         try {
-            while (numberOfFolds<2) {
+            int numberOfFolds = 0;
+            while (true) {
 
                 numberOfFolds++;
                 System.out.println("K fold next");
 
                 SetStarter.resetDataWeights();
 
+                int trainingIteration = 0;
                 for (int i = 0; i < classifiers.size(); i++) {
 
                     KNN lowestErrorClassifier = runClassifiers(priorityKNN, classifiers);
@@ -71,10 +73,11 @@ public class ADABOOST {
 
                     setOverallErrorRate(0.0);
 
-                    for (int j = 0; j < tuples.length; j++) {
-                        setOverallErrorRate(getOverallErrorRate() + checkModelValidity(tuples[j], predictedTraining));
-                    }
 
+                    for (int j = 0; j < tuples.length; j++) {
+                        setOverallErrorRate(getOverallErrorRate() + checkModelValidity(tuples[j], predictedTraining, numberOfFolds, trainingIteration));
+                    }
+                    trainingIteration++;
                     //System.out.println((1 - ((overallErrorRate / (double) tuples.length))));
 
                     /**
@@ -85,7 +88,7 @@ public class ADABOOST {
                     }
                 }
 
-                saveErrorOfTests.add(runOnTestingSet());
+                saveErrorOfTests.add(runOnTestingSet(numberOfFolds));
 
                 if (!SetStarter.nextFold()) {
                     break;
@@ -209,11 +212,31 @@ public class ADABOOST {
      * @param t
      * @return 1 if the tuple is correctly classified, else 0
      */
-    public synchronized int checkModelValidity(Tuple t, ArrayList<Pair<Integer, Pair<Tuple, Integer>>> predicted) {
+    public synchronized int checkModelValidity(Tuple t, ArrayList<Pair<Integer, Pair<Tuple, Integer>>> predicted, int numberOfFolds) {
 
         int index = classifyTuple(t);
 
-        predicted.add(new Pair<>(new Integer(numberOfFolds).intValue(), new Pair<>(t, index)));
+        predicted.add(new Pair<>(numberOfFolds, new Pair<>(t, index)));
+
+        if (t.getClassNum() != index) {
+            return 0;
+        } else {
+            return 1;
+        }
+
+    }
+
+    /**
+     * check the current model validity on tuple
+     *
+     * @param t
+     * @return 1 if the tuple is correctly classified, else 0
+     */
+    public synchronized int checkModelValidity(Tuple t, ArrayList<Pair<Pair<Integer, Integer>, Pair<Tuple, Integer>>> predicted, int numberOfFolds, int trainingIteration) {
+
+        int index = classifyTuple(t);
+
+        predicted.add(new Pair<>(new Pair<>(numberOfFolds, trainingIteration), new Pair<>(t, index)));
 
         if (t.getClassNum() != index) {
             return 0;
@@ -229,10 +252,10 @@ public class ADABOOST {
      *
      * @return
      */
-    public double runOnTestingSet() {
+    public double runOnTestingSet(int numberOfFolds) {
         setCountTrue(0);
         for (int i = 0; i < SetStarter.getTestingSet().length; i++) {
-            setCountTrue(getCountTrue() + checkModelValidity(SetStarter.getTestingSet()[i], predictedTesting));
+            setCountTrue(getCountTrue() + checkModelValidity(SetStarter.getTestingSet()[i], predictedTesting, numberOfFolds));
         }
 
         return 1.0 - (double) getCountTrue() / (double) SetStarter.getTestingSet().length;
@@ -287,7 +310,7 @@ public class ADABOOST {
     }
 
 
-    public ArrayList<Pair<Integer, Pair<Tuple, Integer>>> getPredictedTraining() {
+    public ArrayList<Pair<Pair<Integer, Integer>, Pair<Tuple, Integer>>> getPredictedTraining() {
         return predictedTraining;
     }
 
