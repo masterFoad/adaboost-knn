@@ -1,9 +1,8 @@
 package model;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Queue;
+
 
 public class SetStarter {
 
@@ -22,6 +21,7 @@ public class SetStarter {
 
 
     public static void initialDivision(Tuple[] tups, double divisionPercent) {
+        resetSets();
         if (counter == 0) {
             Collections.shuffle(Arrays.asList(tups));
             allData = tups;
@@ -32,15 +32,15 @@ public class SetStarter {
         testingSet = new Tuple[tups.length - dividor];
 
         int testCounter = 0;
-        for (int i = testingSet.length*counter; i < testingSet.length*counter+testingSet.length; i++) {
+        for (int i = testingSet.length * counter; i < testingSet.length * counter + testingSet.length; i++) {
             testingSet[testCounter++] = allData[i];
         }
 
         int trainingCounter = 0;
-        for (int i = 0; i < testingSet.length*counter; i++) {
+        for (int i = 0; i < testingSet.length * counter; i++) {
             trainingSet[trainingCounter++] = allData[i];
         }
-        for (int i = testingSet.length*counter+testingSet.length; i < allData.length; i++) {
+        for (int i = testingSet.length * counter + testingSet.length; i < allData.length; i++) {
             trainingSet[trainingCounter++] = allData[i];
         }
 
@@ -48,24 +48,23 @@ public class SetStarter {
         counter++;
     }
 
-    public static boolean nextFold(){
+    public static boolean nextFold() {
 
         trainingSet = new Tuple[dividor];
         testingSet = new Tuple[allData.length - dividor];
 
         int testCounter = 0;
 
-        int testingStartIndex = testingSet.length*counter;
+        int testingStartIndex = testingSet.length * counter;
 
-        if(testingStartIndex >= allData.length){
+        if (testingStartIndex >= allData.length) {
             return false;
         }
-        int testingEndIndex = testingSet.length*counter+testingSet.length;
+        int testingEndIndex = testingSet.length * counter + testingSet.length;
 
-        if(testCounter > allData.length){
+        if (testCounter > allData.length) {
             testCounter = allData.length;
         }
-
 
 
         for (int i = testingStartIndex; i < testingEndIndex; i++) {
@@ -81,7 +80,7 @@ public class SetStarter {
         }
 
 
-        if(testingEndIndex == allData.length){
+        if (testingEndIndex == allData.length) {
             return false;
         }
         counter++;
@@ -93,41 +92,16 @@ public class SetStarter {
         return allData;
     }
 
-//    public static void divide(Tuple[] tups, double divisionPercent) {
-////        if(counter==0){
-////            Collections.shuffle(Arrays.asList(tups));
-////            allData = tups;
-////            dataQ = new ArrayDeque<>();
-////            for (int i = 0; i < allData.length; i++) {
-////                dataQ.add(allData[i]);
-////            }
-////        }
-//
-//
-//        int dividor = (int) (tups.length * divisionPercent);
-//        //TODO check if the division percent works
-//
-//        int countTesting = 0;
-//        while (countTesting < dividor) {
-//            testingSet[countTesting] = dataQ.pop();
-//        }
-//
-//        trainingSet = new Tuple[dividor];
-//        testingSet = new Tuple[tups.length - dividor];
-//
-//        for (int i = 0; i < trainingSet.length; i++) {
-//            trainingSet[i] = tups[i];
-//        }
-//
-//        for (int i = 0; i < testingSet.length; i++) {
-//            testingSet[i] = tups[i + dividor];
-//        }
-//
-//        counter++;
-//
-//    }
+    public static void resetDataWeights() {
+        for (int i = 0; i < SetStarter.getTrainingSet().length; i++) {
+            SetStarter.getTrainingSet()[i].setWeight(1.0 / (double) SetStarter.getAllData().length);
+        }
+        for (int i = 0; i < SetStarter.getTestingSet().length; i++) {
+            SetStarter.getTestingSet()[i].setWeight(1.0 / (double) SetStarter.getAllData().length);
+        }
+    }
 
-    public void startAgain() {
+    public static void resetSets() {
         counter = 0;
     }
 

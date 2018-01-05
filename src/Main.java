@@ -1,4 +1,6 @@
 import common.GenericReader;
+import common.Utils;
+import lab.AdaboostExperiment;
 import model.ADABOOST;
 import model.KNN;
 import model.SetStarter;
@@ -17,12 +19,15 @@ public class Main {
 
 
       long startTime = System.currentTimeMillis();
-        ADABOOST superClassifier = ADABOOST.create("/weights1.csv", "/data1.csv", 2, 0.9);
+//        ADABOOST superClassifier = ADABOOST.create("/weights1.csv", "/data1.csv", 2, 0.9);
 //        ADABOOST superClassifier = ADABOOST.create("/weights2.csv", "/data2.csv", 2, 0.9);
 //        ADABOOST superClassifier = ADABOOST.create("/weights3.csv", "/data3.csv", 3, 0.9);
 
 
-        superClassifier.buildModel();
+      AdaboostExperiment exp1 = new AdaboostExperiment("/weights1.csv", "/data1.csv", 2, 0.9);
+      exp1.start();
+      Utils.printMatrix(exp1.getConfusionMatrixForTRAINING().get(2));
+
         //superClassifier.runOnTestingSet();
         long endTime = System.currentTimeMillis();
         long totalTime = endTime - startTime;
@@ -35,7 +40,7 @@ public class Main {
 //        }
 
 //        System.out.println("total total : "+ ((double)totalTotal/5));
-        System.out.println(superClassifier.getFinalReport().toString());
+//        System.out.println(superClassifier.getFinalReport().toString());
         final List<Runnable> rejected = ThreadPoolCenter.getExecutor().shutdownNow();
         System.out.println(("Rejected tasks: {} " + rejected.size()));
 

@@ -16,7 +16,7 @@ public class KNN {
      */
     //private Tuple[] distances;
 
-    private double[][] distancesPair;
+//    private double[][] distancesPair;
 
     private double alpha;
 
@@ -26,11 +26,13 @@ public class KNN {
 
     private double[] weights;
 
-    private int countCurrect;
+//    private int countCurrect;
 
     private volatile double errorRate;
 
     public static int counter = 0;
+
+    private ArrayList<Double> arrayOfErrors;
 
     //TODO static array of distances .. think about the dat vector, we can make it a tree with nodes and apply weights to each child
     //TODO while keeping the node updated, then we can supply the weighrs of the knn and the weights of the point from the adaboost
@@ -50,17 +52,18 @@ public class KNN {
 
         this.weights = weights;
 
+        arrayOfErrors = new ArrayList<>();
 
     }
 
 
 
-    public synchronized void inc() {
-        counter++;
-    }
+//    public synchronized void inc() {
+//        counter++;
+//    }
 
     public int init(Tuple[] set, Tuple newObservation) {
-        inc();
+        //inc();
         PriorityQueue<TupleDistance> distances = new PriorityQueue<>(k_size, Comparator.reverseOrder());
         int[] classes = new int[this.classes.length];
         Tuple[] k = new Tuple[k_size];
@@ -211,9 +214,9 @@ public class KNN {
     }
 
 
-    public int getCountCurrect() {
-        return countCurrect;
-    }
+//    public int getCountCurrect() {
+//        return countCurrect;
+//    }
 
     public synchronized double getErrorRate() {
         return errorRate;
@@ -243,11 +246,14 @@ public class KNN {
                 ", alpha=" + alpha +
                 ", k_size=" + k_size +
                 ", classes=" + Arrays.toString(classes) +
-                ", countCurrect=" + countCurrect +
                 ", errorRate=" + errorRate +
                 '}';
     }
 
+
+    public void addErrorToList(){
+        this.arrayOfErrors.add(errorRate);
+    }
 
     private class TupleDistance implements Comparable<TupleDistance> {
         public Tuple tuple;

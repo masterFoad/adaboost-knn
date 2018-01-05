@@ -13,15 +13,6 @@ public class Tuple{
     private double weight;
 
 
-    /**
-     * distance from current new observation.
-     */
-//    private double distance;
-//
-//    private ArrayList<Double> distances;
-
-
-
     public Tuple(int dim) {
         dataVector = new double[dim];
     }
