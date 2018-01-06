@@ -90,7 +90,7 @@ public class ADABOOST {
                     }
                     resetModelErrors();
                     trainingIteration++;
-                    System.out.println("training "+finalModel.size()+" "+(1 - ((overallErrorRate / (double) tuples.length))));
+//                    System.out.println("training "+finalModel.size()+" "+(1 - ((overallErrorRate / (double) tuples.length))));
                     if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e -> e.getErrorRate() >= 1 - (1 / K))) {
                         break;
                     }

@@ -66,7 +66,7 @@ public class GenericReader {
     }
 
     public static KNN createClassifier(String[] metadata, int numOfClasses) {
-        int randomK = ThreadLocalRandom.current().nextInt(1, 11);
+        int randomK = ThreadLocalRandom.current().nextInt(1, 27);
 //        int randomK = (int)ThreadLocalRandom.current().nextGaussian()*10;
 //        if(randomK<=0){
 //            randomK*=-1;
@@ -81,7 +81,7 @@ public class GenericReader {
         for (String s : metadata) {
             weights[index++] = Double.parseDouble(s);
         }
-        return new KNN(randomK, numOfClasses, weights);
+        return new KNN(5, numOfClasses, weights);
     }
 
     public static Tuple createTuple(String[] metadata) {

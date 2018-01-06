@@ -29,21 +29,34 @@ public class Main {
 
 //        Lab.runExpiriments();
 
-        AdaboostExperiment exp1 = new AdaboostExperiment("/weights1.csv", "/data1.csv", 2, 0.66);
+        AdaboostExperiment exp1 = new AdaboostExperiment("/weights3.csv", "/data3.csv", 3, 0.66);
         exp1.start();
 
         exp1.getSuperClassifier().getPredictedTraining();
 
         ConfusionMatrix cm = new ConfusionMatrix();
 
-//        for (int i = 1; i < exp1.getConfusionMatrixForTRAINING().get(new Pair<>(1, 1)).length; i++) {
-//            for (int j = 1; j < exp1.getConfusionMatrixForTRAINING().get(new Pair<>(1, 1)).length; j++) {
-//                cm.increaseValue(i + "", j + "", exp1.getConfusionMatrixForTRAINING().get(new Pair<>(1, 1))[i][j]);
-//            }
-//        }
-//
-//        System.out.println(cm);
-//
+        for (int i = 1; i < exp1.getConfusionMatrixForTRAINING().get(new Pair<>(1, 1)).length; i++) {
+            for (int j = 1; j < exp1.getConfusionMatrixForTRAINING().get(new Pair<>(1, 1)).length; j++) {
+                cm.increaseValue(i + "", j + "", exp1.getConfusionMatrixForTRAINING().get(new Pair<>(1, 1))[i][j]);
+            }
+        }
+        int[][] arr = exp1.getConfusionMatrixForTRAINING().get(new Pair<>(1, 1));
+        System.out.println(cm);
+        System.out.println("FP for 1 " + (double) (cm.getRowSum("1") - arr[1][1]) / arr[1][1]);
+        System.out.println("FP for 2 " + (double) (cm.getRowSum("2") - arr[2][2]) / arr[2][2]);
+        System.out.println("FP for 3 " + (double) (cm.getRowSum("3") - arr[3][3]) / arr[3][3]);
+        System.out.println("misclassification rate " + (((double) cm.getTotalSum() - arr[1][1] - arr[2][2] - arr[3][3]) / cm.getTotalSum()));
+        System.out.println("TP for 1 " + cm.getRecallForLabel("1"));
+        System.out.println("TP for 2 " + cm.getRecallForLabel("2"));
+        System.out.println("TP for 3 " + cm.getRecallForLabel("3"));
+        System.out.println("Precision for 1 " + cm.getPrecisionForLabel("1"));
+        System.out.println("Precision for 2 " + cm.getPrecisionForLabel("2"));
+        System.out.println("Precision for 3 " + cm.getPrecisionForLabel("3"));
+        System.out.println("TP accuracy " + cm.getAccuracy());
+        System.out.println("" + cm.printClassDistributionGold());
+        System.out.println("" + cm.printNiceResults());
+
 //        System.out.println(cm.getPrecisionForLabels());
 //        System.out.println(cm.getAccuracy());
 //        //cm.getRecallForLabel()
