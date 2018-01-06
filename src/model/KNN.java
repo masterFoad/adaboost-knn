@@ -63,19 +63,22 @@ public class KNN {
         return knn;
     }
 
+    public void inc(){
+        this.counter++;
+    }
 
     /**
      * starting the KNN, returns the class of the K nearest neighbors
      * algorithm:
      *  1- calculate new distances from newObservation
      *      1.1- keep K tuples in a maxHeap of size K, that will always hold the K closest, for maximum efficiency
- *      2- get maximum classes between the K neighbors
+     *  2- get maximum classes between the K neighbors
      * @param set
      * @param newObservation
      * @return
      */
     public int init(Tuple[] set, Tuple newObservation) {
-        //inc();
+        inc();
         PriorityQueue<TupleDistance> distances = new PriorityQueue<>(k_size, Comparator.reverseOrder());
         int[] classes = new int[this.classes.length];
         Tuple[] k = new Tuple[k_size];

@@ -73,7 +73,7 @@ public class ADABOOST {
             int numberOfFolds = 0;
             while (SetStarter.getCounter() <= SetStarter.getMaxFolds()) {
                 numberOfFolds++;
-                System.out.println("K fold next");
+                System.out.println(SetStarter.getCounter()+" fold of  "+SetStarter.getMaxFolds());
                 SetStarter.resetDataWeights();
                 tuples = SetStarter.getTrainingSet();
                 int trainingIteration = 0;
@@ -88,25 +88,26 @@ public class ADABOOST {
                     for (int j = 0; j < tuples.length; j++) {
                         setOverallErrorRate(getOverallErrorRate() + checkModelValidity(tuples[j], predictedTraining, numberOfFolds, trainingIteration));
                     }
-                    System.out.println(trainingIteration);
+                    System.out.println((trainingIteration+1)+" Step of "+classifiers.size());
                     resetModelErrors();
                     trainingIteration++;
-//                    System.out.println("training "+finalModel.size()+" "+(1 - ((overallErrorRate / (double) tuples.length))));
                     if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e -> e.getErrorRate() >= 1 - (1 / K))) {
                         break;
                     }
                     priorityKNN.clear();
                 }
                 double testingError = runOnTestingSet(numberOfFolds);
-                System.out.println("test "+finalModel.size()+" "+testingError);
+                System.out.println("test "+finalModel.size()+" "+testingError+" correct: "+(1-testingError));
                 saveErrorOfTests.add(testingError);
                 if (!SetStarter.nextFold()) {
                     break;
                 }
             }
+            System.out.println(finalModel);
+            System.out.println("error average of tests "+saveErrorOfTests.stream().mapToDouble(e -> e.doubleValue()).average().getAsDouble());
+            System.out.println("correct average of tests "+(1-saveErrorOfTests.stream().mapToDouble(e -> e.doubleValue()).average().getAsDouble()));
 
-                System.out.println(saveErrorOfTests.stream().mapToDouble(e -> e.doubleValue()).average());
-            } catch(Exception e){
+        } catch(Exception e){
                 e.printStackTrace();
             }
         }
