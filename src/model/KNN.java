@@ -34,12 +34,6 @@ public class KNN {
 
     private ArrayList<Double> arrayOfErrors;
 
-    //TODO static array of distances .. think about the dat vector, we can make it a tree with nodes and apply weights to each child
-    //TODO while keeping the node updated, then we can supply the weighrs of the knn and the weights of the point from the adaboost
-    //TODO sum ((ui-v1)*wi) * wu
-
-
-    //TODO change weights to num of classes
     public KNN(int k, int numofClasses, double[] weights) {
         this.num = id;
         id++;
@@ -57,11 +51,16 @@ public class KNN {
     }
 
 
-
-//    public synchronized void inc() {
-//        counter++;
-//    }
-
+    /**
+     * starting the KNN, returns the class of the K nearest neighbors
+     * algorithm:
+     *  1- calculate new distances from newObservation
+     *      1.1- keep K tuples in a maxHeap of size K, that will always hold the K closest, for maximum efficiency
+ *      2- get maximum classes between the K neighbors
+     * @param set
+     * @param newObservation
+     * @return
+     */
     public int init(Tuple[] set, Tuple newObservation) {
         //inc();
         PriorityQueue<TupleDistance> distances = new PriorityQueue<>(k_size, Comparator.reverseOrder());
@@ -78,6 +77,23 @@ public class KNN {
 
         return Y;
     }
+
+//    public int initWithLearning(Tuple[] set, Tuple newObservation) {
+//        //inc();
+//        PriorityQueue<TupleDistance> distances = new PriorityQueue<>(k_size, Comparator.reverseOrder());
+//        int[] classes = new int[this.classes.length];
+//        Tuple[] k = new Tuple[k_size];
+//
+//        initDistances(set, newObservation, distances);
+//
+//        getKnns(distances, k);
+//
+//        int Y = maxClassInNeighborhood(classes, k);
+//
+//        calculateError(newObservation, Y);
+//
+//        return Y;
+//    }
 
     /**
      * getting the closest neighbors from the queue
@@ -232,6 +248,10 @@ public class KNN {
 
     public void setAlpha(double alpha) {
         this.alpha = alpha;
+    }
+
+    public void setK_size(int k_size) {
+        this.k_size = k_size;
     }
 
     @Override

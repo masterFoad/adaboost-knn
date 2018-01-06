@@ -11,7 +11,8 @@ public class SetStarter {
     private static KNN[] weakClassifiers;
     private static Tuple[] allData;
     private static int counter = 0;
-    private static int dividor;
+    private static int partitionIndex;
+    private static int maxFolds = 0;
 
     public static void initKNNs(KNN[] knns) {
 
@@ -19,17 +20,23 @@ public class SetStarter {
 
     }
 
-
+    /**
+     * initial set partition
+     *
+     * @param tups
+     * @param divisionPercent
+     */
     public static void initialDivision(Tuple[] tups, double divisionPercent) {
         resetSets();
         if (counter == 0) {
             Collections.shuffle(Arrays.asList(tups));
             allData = tups;
-            dividor = (int) (tups.length * divisionPercent);
+            partitionIndex = (int) (tups.length * divisionPercent);
+            maxFolds = (int) ((double) tups.length / ((double) tups.length - partitionIndex));
         }
 
-        trainingSet = new Tuple[dividor];
-        testingSet = new Tuple[tups.length - dividor];
+        trainingSet = new Tuple[partitionIndex];
+        testingSet = new Tuple[tups.length - partitionIndex];
 
         int testCounter = 0;
         for (int i = testingSet.length * counter; i < testingSet.length * counter + testingSet.length; i++) {
@@ -48,10 +55,16 @@ public class SetStarter {
         counter++;
     }
 
+    /**
+     * get the next training set and testing set
+     *
+     * @return
+     */
     public static boolean nextFold() {
 
-        trainingSet = new Tuple[dividor];
-        testingSet = new Tuple[allData.length - dividor];
+
+        trainingSet = new Tuple[partitionIndex];
+        testingSet = new Tuple[allData.length - partitionIndex];
 
         int testCounter = 0;
 
@@ -62,8 +75,8 @@ public class SetStarter {
         }
         int testingEndIndex = testingSet.length * counter + testingSet.length;
 
-        if (testCounter > allData.length) {
-            testCounter = allData.length;
+        if (testingEndIndex > allData.length) {
+            testingEndIndex = allData.length;
         }
 
 
@@ -73,16 +86,15 @@ public class SetStarter {
 
         int trainingCounter = 0;
         for (int i = 0; i < testingStartIndex; i++) {
+            if (trainingCounter == trainingSet.length) {
+                break;
+            }
             trainingSet[trainingCounter++] = allData[i];
         }
         for (int i = testingEndIndex; i < allData.length; i++) {
             trainingSet[trainingCounter++] = allData[i];
         }
 
-
-        if (testingEndIndex == allData.length) {
-            return false;
-        }
         counter++;
 
         return true;
@@ -92,6 +104,9 @@ public class SetStarter {
         return allData;
     }
 
+    /**
+     * reseting the weights
+     */
     public static void resetDataWeights() {
         for (int i = 0; i < SetStarter.getTrainingSet().length; i++) {
             SetStarter.getTrainingSet()[i].setWeight(1.0 / (double) SetStarter.getAllData().length);
@@ -115,5 +130,13 @@ public class SetStarter {
 
     public static KNN[] getWeakClassifiers() {
         return weakClassifiers;
+    }
+
+    public static int getMaxFolds() {
+        return maxFolds;
+    }
+
+    public static int getCounter() {
+        return counter;
     }
 }

@@ -30,7 +30,7 @@ public class ADABOOST {
      * <<foldIteration, trainingIteratoinInFold>, <tuple, classified as>>
      * <Pair<Pair<Integer,Integer>, Pair<Tuple, Integer>>>
      */
-    private ArrayList<Pair<Pair<Integer,Integer>, Pair<Tuple, Integer>>> predictedTraining;
+    private ArrayList<Pair<Pair<Integer, Integer>, Pair<Tuple, Integer>>> predictedTraining;
     private ArrayList<Pair<Integer, Pair<Tuple, Integer>>> predictedTesting;
 
     public ADABOOST(ArrayList<KNN> classifiers, Tuple[] tuples, int numOfClasses) {
@@ -47,66 +47,66 @@ public class ADABOOST {
         numberOfFolds = 0;
     }
 
+    /**
+     * if the error rate is bigger than 1-(1/k) means the classifier is no longer a weak classifier, because its worst than random.
+     */
+    /**
+     * will run the adaboost using cross validation
+     * the algorithm:
+     * while we can still run CV:
+     *      for step 1 ... T:
+     *          h<-find the weak classifier with the lowest error rate
+     *          E<-get the error rate of h
+     *          a<-calculate alpha of h
+     *          w<-update the weights for the next step
+     *          add h to the final model H
+     *          test the current model on the training data
+     *          break if when the classifiers are no longer weak classifiers
+     *          break if the trainingError for the current Model is 0
+     *      test current Model H on the testing data
+     */
     public void buildModel() {
         try {
             int numberOfFolds = 0;
-            while (true) {
-
+            while (SetStarter.getCounter() <= SetStarter.getMaxFolds()) {
                 numberOfFolds++;
                 System.out.println("K fold next");
-
                 SetStarter.resetDataWeights();
-
                 int trainingIteration = 0;
                 for (int i = 0; i < classifiers.size(); i++) {
-
                     KNN lowestErrorClassifier = runClassifiers(priorityKNN, classifiers);
-
                     double E = lowestErrorClassifier.getErrorRate();
                     double alpha = ((1 - E) / (E)) * (K - 1);
-
                     initNewWeights(lowestErrorClassifier);
-
                     lowestErrorClassifier.setAlpha(alpha);
-
                     finalModel.add(new FinalModel(lowestErrorClassifier, lowestErrorClassifier.getAlpha()));
-
                     setOverallErrorRate(0.0);
-
-
                     for (int j = 0; j < tuples.length; j++) {
                         setOverallErrorRate(getOverallErrorRate() + checkModelValidity(tuples[j], predictedTraining, numberOfFolds, trainingIteration));
                     }
                     trainingIteration++;
-                    //System.out.println((1 - ((overallErrorRate / (double) tuples.length))));
-
-                    /**
-                     * if the error rate is bigger than 1-(1/k) means the classifier is no longer a weak classifier, because its worst than random.
-                     */
                     if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e -> e.getErrorRate() > 1 - (1 / K))) {
                         break;
                     }
                 }
-
                 saveErrorOfTests.add(runOnTestingSet(numberOfFolds));
-
                 if (!SetStarter.nextFold()) {
                     break;
                 }
-
             }
 
-            System.out.println(saveErrorOfTests.stream().mapToDouble(e -> e.doubleValue()).average());
-        } catch (Exception e) {
-            e.printStackTrace();
+                System.out.println(saveErrorOfTests.stream().mapToDouble(e -> e.doubleValue()).average());
+            } catch(Exception e){
+                e.printStackTrace();
+            }
         }
-    }
 
-    /**
-     * setting up weights for next step.
-     *
-     * @param lowestErrorClassifier
-     */
+        /**
+         * setting up weights for next step.
+         *
+         * @param lowestErrorClassifier
+         */
+
     private void initNewWeights(KNN lowestErrorClassifier) {
         Arrays.stream(SetStarter.getTrainingSet()).forEach(t ->
                 {

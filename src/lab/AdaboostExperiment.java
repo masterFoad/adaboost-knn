@@ -27,10 +27,9 @@ public class AdaboostExperiment {
 
         //+1 for good measures
         int foldSize = (int) (SetStarter.getAllData().length / (SetStarter.getAllData().length * cvPercent)) + 1;
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 30; i++) {
             confusionMatrixForFoldTESTING.put(i, new int[numberOfClasses + 1][numberOfClasses + 1]);
         }
-
 
 
     }
@@ -41,9 +40,9 @@ public class AdaboostExperiment {
 
     public Map<Pair<Integer, Integer>, int[][]> getConfusionMatrixForTRAINING() {
         //TODO LATER
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 30; i++) {
             for (int j = 0; j < 201; j++) {
-                confusionMatrixForFoldTRAINING.put(new Pair<>(i,j), new int[numOfClasses + 1][numOfClasses + 1]);
+                confusionMatrixForFoldTRAINING.put(new Pair<>(i, j), new int[numOfClasses + 1][numOfClasses + 1]);
             }
 
         }

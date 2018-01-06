@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<fx:root xmlns="http://javafx.com/javafx"
+         xmlns:fx="http://javafx.com/fxml"
+         prefHeight="200.0" prefWidth="300.0" type="javafx.scene.layout.StackPane">
+    <BorderPane>
+        <top>
+            <ChoiceBox fx:id="choose data"/>
+        </top>
+        <bottom>
+            <HBox>
+                <Button fx:id="close" text="Close"/>
+                <Button fx:id="next" text="Next"/>
+            </HBox>
+        </bottom>
+    </BorderPane>
+</fx:root>
