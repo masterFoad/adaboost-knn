@@ -5,6 +5,7 @@ import javafx.animation.Interpolator;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.SplitPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -36,7 +37,7 @@ public class SceneController {
      * @param sceneToDisplay
      * @param title
      */
-    public void display(Pane sceneToDisplay,String title){
+    public void display(SplitPane sceneToDisplay, String title){
         primaryStage.setTitle(title);
         Scene myScene = new Scene(sceneToDisplay);
         primaryStage.setScene(myScene);

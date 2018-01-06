@@ -154,69 +154,69 @@
 //    }
 //
 //
-//    public ArrayList<BubbleChart<Number, Number>> chartFactory(Tuple[] l, List<Pair<Pair<Integer, Integer>, Pair<Tuple, Integer>>> tuples, String title, boolean isTraining) {
-//
-//        int chosen = calcGraphSize(l);
-//        final NumberAxis xAxis = new NumberAxis(-chosen, chosen, 1);
-//        final NumberAxis yAxis = new NumberAxis(-chosen, chosen, 1);
-//        final BubbleChart<Number, Number> blc = new
-//                CircularBubbleChart<>(xAxis, yAxis);
-//
-//        blc.setTitle(title);
-//        XYChart.Series series1 = new XYChart.Series();
-//        series1.setName("class 1");
-//        XYChart.Series series2 = new XYChart.Series();
-//        series2.setName("class 2");
-//        XYChart.Series series3 = new XYChart.Series();
-//        series3.setName("misclassified class 1");
-//        XYChart.Series series4 = new XYChart.Series();
-//        series4.setName("misclassified class 2");
-//
-//        for (Pair<Pair<Integer, Integer>, Pair<Tuple, Integer>> t : tuples) {
-//            double[] oldVector;
-//            double[] newVector;
-//            if (t.getValue().getDataVector().length == 2) {
-//                oldVector = t.getKey().getDataVector();
-//                newVector = t.getValue().getDataVector();
-//            } else {
-//                oldVector = Utils.multiply(Utils.REDUCE_DIM_MATRIX, t.getKey().getDataVector());
-//                newVector = Utils.multiply(Utils.REDUCE_DIM_MATRIX, t.getValue().getDataVector());
-//            }
-//
-//            if (isTraining) {
-//                if (t.getKey().getClassNum() == 1) {
-//                    series1.getData().add(new XYChart.Data(oldVector[0], oldVector[1], t.getKey().getWeight() / 0.005));
-//                    if (t.getValue().getClassNum() != 1) {
-//                        series3.getData().add(new XYChart.Data(newVector[0], newVector[1], t.getKey().getWeight() / 0.005));
-//                    }
-//                }
-//
-//                if (t.getKey().getClassNum() == 2) {
-//                    series2.getData().add(new XYChart.Data(oldVector[0], oldVector[1], t.getKey().getWeight() / 0.005));
-//                    if (t.getValue().getClassNum() != 2) {
-//                        series4.getData().add(new XYChart.Data(newVector[0], newVector[1], t.getKey().getWeight() / 0.005));
-//                    }
-//                }
-//            } else {
-//                if (t.getKey().getClassNum() == 1) {
-//                    series1.getData().add(new XYChart.Data(t.getKey().getDataVector()[0], t.getKey().getDataVector()[1], t.getKey().getWeight()));
-//                    if (t.getValue().getClassNum() != 1) {
-//                        series3.getData().add(new XYChart.Data(newVector[0], newVector[1], t.getKey().getWeight()));
-//                    }
-//                }
-//
-//                if (t.getKey().getClassNum() == 2) {
-//                    series2.getData().add(new XYChart.Data(oldVector[0], oldVector[1], t.getKey().getWeight()));
-//                    if (t.getValue().getClassNum() != 2) {
-//                        series4.getData().add(new XYChart.Data(newVector[0], newVector[1], t.getKey().getWeight()));
-//                    }
-//                }
-//            }
-//
-//        }
-//        blc.getData().addAll(series1, series2, series3, series4);
-//        return blc;
-//    }
+////    public ArrayList<BubbleChart<Number, Number>> chartFactory(Tuple[] l, List<Pair<Pair<Integer, Integer>, Pair<Tuple, Integer>>> tuples, String title, boolean isTraining) {
+////
+////        int chosen = calcGraphSize(l);
+////        final NumberAxis xAxis = new NumberAxis(-chosen, chosen, 1);
+////        final NumberAxis yAxis = new NumberAxis(-chosen, chosen, 1);
+////        final BubbleChart<Number, Number> blc = new
+////                CircularBubbleChart<>(xAxis, yAxis);
+////
+////        blc.setTitle(title);
+////        XYChart.Series series1 = new XYChart.Series();
+////        series1.setName("class 1");
+////        XYChart.Series series2 = new XYChart.Series();
+////        series2.setName("class 2");
+////        XYChart.Series series3 = new XYChart.Series();
+////        series3.setName("misclassified class 1");
+////        XYChart.Series series4 = new XYChart.Series();
+////        series4.setName("misclassified class 2");
+////
+////        for (Pair<Pair<Integer, Integer>, Pair<Tuple, Integer>> t : tuples) {
+////            double[] oldVector;
+////            double[] newVector;
+////            if (t.getValue().getDataVector().length == 2) {
+////                oldVector = t.getKey().getDataVector();
+////                newVector = t.getValue().getDataVector();
+////            } else {
+////                oldVector = Utils.multiply(Utils.REDUCE_DIM_MATRIX, t.getKey().getDataVector());
+////                newVector = Utils.multiply(Utils.REDUCE_DIM_MATRIX, t.getValue().getDataVector());
+////            }
+////
+////            if (isTraining) {
+////                if (t.getKey().getClassNum() == 1) {
+////                    series1.getData().add(new XYChart.Data(oldVector[0], oldVector[1], t.getKey().getWeight() / 0.005));
+////                    if (t.getValue().getClassNum() != 1) {
+////                        series3.getData().add(new XYChart.Data(newVector[0], newVector[1], t.getKey().getWeight() / 0.005));
+////                    }
+////                }
+////
+////                if (t.getKey().getClassNum() == 2) {
+////                    series2.getData().add(new XYChart.Data(oldVector[0], oldVector[1], t.getKey().getWeight() / 0.005));
+////                    if (t.getValue().getClassNum() != 2) {
+////                        series4.getData().add(new XYChart.Data(newVector[0], newVector[1], t.getKey().getWeight() / 0.005));
+////                    }
+////                }
+////            } else {
+////                if (t.getKey().getClassNum() == 1) {
+////                    series1.getData().add(new XYChart.Data(t.getKey().getDataVector()[0], t.getKey().getDataVector()[1], t.getKey().getWeight()));
+////                    if (t.getValue().getClassNum() != 1) {
+////                        series3.getData().add(new XYChart.Data(newVector[0], newVector[1], t.getKey().getWeight()));
+////                    }
+////                }
+////
+////                if (t.getKey().getClassNum() == 2) {
+////                    series2.getData().add(new XYChart.Data(oldVector[0], oldVector[1], t.getKey().getWeight()));
+////                    if (t.getValue().getClassNum() != 2) {
+////                        series4.getData().add(new XYChart.Data(newVector[0], newVector[1], t.getKey().getWeight()));
+////                    }
+////                }
+////            }
+////
+////        }
+////        blc.getData().addAll(series1, series2, series3, series4);
+////        return blc;
+////    }
 //
 ////    public ScatterChart<Number, Number> chartFactory(Tuple[] tuples, String title) {
 ////

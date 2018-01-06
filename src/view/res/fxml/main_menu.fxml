@@ -13,9 +13,9 @@
                <ChoiceBox fx:id="chooseData">
                    <items>
                        <FXCollections fx:factory="observableArrayList">
-                           <String fx:value="/data1"/>
-                           <String fx:value="/data2"/>
-                           <String fx:value="/data3"/>
+                           <String fx:value="/data1.csv"/>
+                           <String fx:value="/data2.csv"/>
+                           <String fx:value="/data3.csv"/>
                        </FXCollections>
                    </items>
                </ChoiceBox>
