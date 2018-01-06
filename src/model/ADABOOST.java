@@ -90,11 +90,11 @@ public class ADABOOST {
                     }
                     resetModelErrors();
                     trainingIteration++;
-                    priorityKNN.clear();
                     System.out.println("training "+finalModel.size()+" "+(1 - ((overallErrorRate / (double) tuples.length))));
                     if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e -> e.getErrorRate() >= 1 - (1 / K))) {
                         break;
                     }
+                    priorityKNN.clear();
                 }
                 double testingError = runOnTestingSet(numberOfFolds);
                 System.out.println("test "+finalModel.size()+" "+testingError);
