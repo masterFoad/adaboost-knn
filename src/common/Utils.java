@@ -1,5 +1,7 @@
 package common;
 
+import lab.ConfusionMatrix;
+
 public class Utils {
 
 
@@ -37,5 +39,19 @@ public class Utils {
             }
             System.out.println();
         }
+    }
+
+
+
+    public static ConfusionMatrix transformToCM(int[][] matrix){
+        ConfusionMatrix cm = new ConfusionMatrix();
+
+        for (int i = 1; i < matrix.length; i++) {
+            for (int j = 1; j < matrix.length; j++) {
+                cm.increaseValue(i + "", j + "", matrix[i][j]);
+            }
+        }
+
+        return cm;
     }
 }

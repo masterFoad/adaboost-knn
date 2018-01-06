@@ -88,6 +88,7 @@ public class ADABOOST {
                     for (int j = 0; j < tuples.length; j++) {
                         setOverallErrorRate(getOverallErrorRate() + checkModelValidity(tuples[j], predictedTraining, numberOfFolds, trainingIteration));
                     }
+                    System.out.println(trainingIteration);
                     resetModelErrors();
                     trainingIteration++;
 //                    System.out.println("training "+finalModel.size()+" "+(1 - ((overallErrorRate / (double) tuples.length))));
