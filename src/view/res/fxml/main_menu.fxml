@@ -2,17 +2,30 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
 <fx:root xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml"
-         prefHeight="200.0" prefWidth="300.0" type="javafx.scene.layout.StackPane">
+         prefHeight="200.0" prefWidth="400.0" type="javafx.scene.layout.StackPane">
     <BorderPane>
         <top>
-            <ChoiceBox fx:id="choose data"/>
+           <HBox>
+               <ChoiceBox fx:id="chooseData">
+                   <items>
+                       <FXCollections fx:factory="observableArrayList">
+                           <String fx:value="/data1"/>
+                           <String fx:value="/data2"/>
+                           <String fx:value="/data3"/>
+                       </FXCollections>
+                   </items>
+               </ChoiceBox>
+               <TextField fx:id="fold" prefWidth="400" promptText="partition percent(between 0.5 and 1)"/>
+           </HBox>
         </top>
         <bottom>
             <HBox>
                 <Button fx:id="close" text="Close"/>
-                <Button fx:id="next" text="Next"/>
+                <Button fx:id="next" text="Run"/>
             </HBox>
         </bottom>
     </BorderPane>

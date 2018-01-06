@@ -20,6 +20,8 @@ public class ADABOOST {
     private ArrayList<ArrayList<FinalModel>> finalALlModels;
 //    private int kIterations;
 
+    private ArrayList<Double> holdLastErrors;
+
     private ArrayList<Double> saveErrorOfTests;
 
     private double K;
@@ -45,6 +47,7 @@ public class ADABOOST {
         this.predictedTraining = new ArrayList<>();
         this.predictedTesting = new ArrayList<>();
         numberOfFolds = 0;
+        holdLastErrors = new ArrayList<>();
     }
 
     /**
@@ -72,6 +75,7 @@ public class ADABOOST {
                 numberOfFolds++;
                 System.out.println("K fold next");
                 SetStarter.resetDataWeights();
+                tuples = SetStarter.getTrainingSet();
                 int trainingIteration = 0;
                 for (int i = 0; i < classifiers.size(); i++) {
                     KNN lowestErrorClassifier = runClassifiers(priorityKNN, classifiers);
@@ -79,17 +83,22 @@ public class ADABOOST {
                     double alpha = ((1 - E) / (E)) * (K - 1);
                     initNewWeights(lowestErrorClassifier);
                     lowestErrorClassifier.setAlpha(alpha);
-                    finalModel.add(new FinalModel(lowestErrorClassifier, lowestErrorClassifier.getAlpha()));
+                    addToFinalModelH(lowestErrorClassifier, lowestErrorClassifier.getAlpha());
                     setOverallErrorRate(0.0);
                     for (int j = 0; j < tuples.length; j++) {
                         setOverallErrorRate(getOverallErrorRate() + checkModelValidity(tuples[j], predictedTraining, numberOfFolds, trainingIteration));
                     }
+                    resetModelErrors();
                     trainingIteration++;
-                    if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e -> e.getErrorRate() > 1 - (1 / K))) {
+                    priorityKNN.clear();
+                    System.out.println("training "+finalModel.size()+" "+(1 - ((overallErrorRate / (double) tuples.length))));
+                    if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e -> e.getErrorRate() >= 1 - (1 / K))) {
                         break;
                     }
                 }
-                saveErrorOfTests.add(runOnTestingSet(numberOfFolds));
+                double testingError = runOnTestingSet(numberOfFolds);
+                System.out.println("test "+finalModel.size()+" "+testingError);
+                saveErrorOfTests.add(testingError);
                 if (!SetStarter.nextFold()) {
                     break;
                 }
@@ -160,24 +169,34 @@ public class ADABOOST {
             k.prepareForNextStep();
         }
 
-        index = 0;
+//        index = 0;
         for (int j = 0; j < classifiers.size(); j++) {
-            CompletableFuture<?>[] futures = initWorkers(classifiers.get(index), tuples).stream()
+            CompletableFuture<?>[] futures = initWorkers(classifiers.get(j), tuples).stream()
                     .map(task -> CompletableFuture.runAsync(task, ThreadPoolCenter.getExecutor()))
                     .toArray(CompletableFuture[]::new);
 
 
             CompletableFuture.allOf(futures).join();
-//                    for (int k = 0; k < tuples.length; k++) {
-//                        classifiers.get(index).init(tuples, tuples[k]);
-//
-//                    }
-            priorityKNN.add(classifiers.get(index));
-            index++;
+                    for (int k = 0; k < tuples.length; k++) {
+                        classifiers.get(index).init(tuples, tuples[k]);
+
+                    }
+            priorityKNN.add(classifiers.get(j));
+//            index++;
         }
 
 
         return priorityKNN.peek();
+    }
+
+    /**
+     * adding weak classifier to final model
+     * @param knn
+     * @param alpha
+     */
+    private void addToFinalModelH(KNN knn, double alpha){
+        FinalModel fm = new FinalModel(knn.getClone() , alpha);
+        finalModel.add(fm);
     }
 
 
@@ -337,6 +356,13 @@ public class ADABOOST {
                     "k=" + this.knn.getK_size() +
                     ", alpha=" + alpha +
                     '}';
+        }
+    }
+
+
+    private void resetModelErrors(){
+        for(FinalModel fm : finalModel){
+            fm.knn.setErrorRate(0.0);
         }
     }
 

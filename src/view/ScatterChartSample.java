@@ -21,6 +21,7 @@
 //import model.thread_center.ThreadPoolCenter;
 //import view.scene_util.CircularBubbleChart;
 //
+//import java.util.ArrayList;
 //import java.util.Arrays;
 //import java.util.List;
 //import java.util.stream.Stream;
@@ -63,12 +64,13 @@
 //                chartFactory(Stream.concat(
 //                        Arrays.stream(SetStarter.getTrainingSet()), Arrays.stream(SetStarter.getTestingSet()))
 //                        .toArray(Tuple[]::new), "All data")
-//                , chartFactory(superClassifier.getFinalResultsForTraining(), "Training Data results - showing final weights (x200)", true)
+//                , chartFactory(Stream.concat(
+//                Arrays.stream(SetStarter.getTrainingSet()), Arrays.stream(SetStarter.getTestingSet())), superClassifier.getPredictedTraining(), "Training Data results - showing final weights (x200)", true)
 //
 //
 //        );
 //        hortSplitPane.setPrefWidth(stage.getWidth());
-//        TextArea reportArea = new TextArea(superClassifier.getFinalReport().toString());
+//        TextArea reportArea = new TextArea();
 //        //reportArea.setText(superClassifier.get);
 //
 //        reportArea.setPrefWidth(1000);
@@ -105,28 +107,28 @@
 //        launch(args);
 //    }
 //
-//    public int calcGraphSize(List<Pair<Tuple, Tuple>> tuples) {
-//        double minValue = 0.0;
-//        double maxValue = 0.0;
-//        double chosen = 0;
-//        for (Pair<Tuple, Tuple> tps : tuples) {
-//            for (double d : tps.getValue().getDataVector()) {
-//                if (d > maxValue) {
-//                    maxValue = d;
-//                }
-//                if (d < minValue) {
-//                    minValue = d;
-//                }
-//            }
-//        }
-//
-//        if (Math.abs(maxValue) > Math.abs(minValue)) {
-//            chosen = (int) Math.abs(maxValue) + 5;
-//        } else {
-//            chosen = (int) Math.abs(minValue) + 5;
-//        }
-//        return (int) chosen;
-//    }
+////    public int calcGraphSize(List<Pair<Tuple, Tuple>> tuples) {
+////        double minValue = 0.0;
+////        double maxValue = 0.0;
+////        double chosen = 0;
+////        for (Pair<Tuple, Tuple> tps : tuples) {
+////            for (double d : tps.getValue().getDataVector()) {
+////                if (d > maxValue) {
+////                    maxValue = d;
+////                }
+////                if (d < minValue) {
+////                    minValue = d;
+////                }
+////            }
+////        }
+////
+////        if (Math.abs(maxValue) > Math.abs(minValue)) {
+////            chosen = (int) Math.abs(maxValue) + 5;
+////        } else {
+////            chosen = (int) Math.abs(minValue) + 5;
+////        }
+////        return (int) chosen;
+////    }
 //
 //    public int calcGraphSize(Tuple[] tuples) {
 //        double minValue = 0.0;
@@ -152,21 +154,14 @@
 //    }
 //
 //
-//    public BubbleChart<Number, Number> chartFactory(List<Pair<Tuple, Tuple>> tuples, String title, boolean isTraining) {
+//    public ArrayList<BubbleChart<Number, Number>> chartFactory(Tuple[] l, List<Pair<Pair<Integer, Integer>, Pair<Tuple, Integer>>> tuples, String title, boolean isTraining) {
 //
-//        int cof = 1;
-//        if(tuples.get(0).getValue().getDataVector().length>2){
-//            cof=2;
-//        }
-//
-//        int chosen = calcGraphSize(tuples)*cof;
+//        int chosen = calcGraphSize(l);
 //        final NumberAxis xAxis = new NumberAxis(-chosen, chosen, 1);
 //        final NumberAxis yAxis = new NumberAxis(-chosen, chosen, 1);
 //        final BubbleChart<Number, Number> blc = new
 //                CircularBubbleChart<>(xAxis, yAxis);
-////        xAxis.setLabel("Age (years)");
-////        yAxis.setLabel("Returns to date");
-////        sc.setTitle("Investment Overview");
+//
 //        blc.setTitle(title);
 //        XYChart.Series series1 = new XYChart.Series();
 //        series1.setName("class 1");
@@ -177,7 +172,7 @@
 //        XYChart.Series series4 = new XYChart.Series();
 //        series4.setName("misclassified class 2");
 //
-//        for (Pair<Tuple, Tuple> t : tuples) {
+//        for (Pair<Pair<Integer, Integer>, Pair<Tuple, Integer>> t : tuples) {
 //            double[] oldVector;
 //            double[] newVector;
 //            if (t.getValue().getDataVector().length == 2) {
@@ -259,11 +254,11 @@
 //
 //
 //        int cof = 1;
-//        if(tuples[0].getDataVector().length>2){
-//            cof=2;
+//        if (tuples[0].getDataVector().length > 2) {
+//            cof = 2;
 //        }
 //
-//        int chosen = calcGraphSize(tuples)*cof;
+//        int chosen = calcGraphSize(tuples) * cof;
 //
 //        final NumberAxis xAxis = new NumberAxis(-chosen, chosen, 1);
 //        final NumberAxis yAxis = new NumberAxis(-chosen, chosen, 1);

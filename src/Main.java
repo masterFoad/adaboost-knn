@@ -29,7 +29,7 @@ public class Main {
 
 //        Lab.runExpiriments();
 
-        AdaboostExperiment exp1 = new AdaboostExperiment("/weights3.csv", "/data3.csv", 3, 0.9);
+        AdaboostExperiment exp1 = new AdaboostExperiment("/weights1.csv", "/data1.csv", 2, 0.66);
         exp1.start();
 
         exp1.getSuperClassifier().getPredictedTraining();

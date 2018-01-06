@@ -1,10 +1,14 @@
 package model;
 
+import javafx.util.Pair;
+
 import java.util.*;
 
 public class KNN {
     private static int id;
     private int num;
+
+    private Pair<Boolean,Double> isInFinalModel;
 
     /**
      * this array will hold the indexes of the k neighbors
@@ -32,7 +36,6 @@ public class KNN {
 
     public static int counter = 0;
 
-    private ArrayList<Double> arrayOfErrors;
 
     public KNN(int k, int numofClasses, double[] weights) {
         this.num = id;
@@ -45,9 +48,19 @@ public class KNN {
         classes = new int[numofClasses + 1];
 
         this.weights = weights;
+        isInFinalModel = new Pair<>(false,0.0);
 
-        arrayOfErrors = new ArrayList<>();
+    }
 
+    /**
+     * dereferencing the object
+     * @return
+     */
+    public KNN getClone(){
+        KNN knn = new KNN(this.k_size, classes.length-1, weights);
+        knn.setNum(this.getNum());
+        knn.setIsInFinalModel(new Pair<>(true, 0.0));
+        return knn;
     }
 
 
@@ -137,7 +150,6 @@ public class KNN {
 
                 double curDis = (Math.sqrt(sum) * old.getWeight());
                 insertPriorityK(distances, curDis, old);
-
             }
         }
     }
@@ -155,6 +167,10 @@ public class KNN {
             newObservation.getIsCorrectlyClassified()[num] = false;
         } else {
             newObservation.getIsCorrectlyClassified()[num] = true;
+        }
+        if(getIsInFinalModel().getKey().booleanValue()){
+            setIsInFinalModel(new Pair<>(true, getErrorRate()));
+//            System.out.println(this.getNum()+" "+this.getIsInFinalModel().getValue().doubleValue());
         }
     }
 
@@ -234,6 +250,11 @@ public class KNN {
 //        return countCurrect;
 //    }
 
+
+    public void setNum(int num) {
+        this.num = num;
+    }
+
     public synchronized double getErrorRate() {
         return errorRate;
     }
@@ -270,11 +291,6 @@ public class KNN {
                 '}';
     }
 
-
-    public void addErrorToList(){
-        this.arrayOfErrors.add(errorRate);
-    }
-
     private class TupleDistance implements Comparable<TupleDistance> {
         public Tuple tuple;
         public double distance;
@@ -296,6 +312,15 @@ public class KNN {
                     ", distance=" + distance +
                     '}';
         }
+    }
+
+
+    public Pair<Boolean, Double> getIsInFinalModel() {
+        return isInFinalModel;
+    }
+
+    public void setIsInFinalModel(Pair<Boolean, Double> isInFinalModel) {
+        this.isInFinalModel = isInFinalModel;
     }
 
     public int getK_size() {

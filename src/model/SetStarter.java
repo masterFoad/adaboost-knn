@@ -109,10 +109,10 @@ public class SetStarter {
      */
     public static void resetDataWeights() {
         for (int i = 0; i < SetStarter.getTrainingSet().length; i++) {
-            SetStarter.getTrainingSet()[i].setWeight(1.0 / (double) SetStarter.getAllData().length);
+            SetStarter.getTrainingSet()[i].setWeight(1.0 / (double) SetStarter.getTrainingSet().length);
         }
         for (int i = 0; i < SetStarter.getTestingSet().length; i++) {
-            SetStarter.getTestingSet()[i].setWeight(1.0 / (double) SetStarter.getAllData().length);
+            SetStarter.getTestingSet()[i].setWeight(1.0 / (double) SetStarter.getTestingSet().length);
         }
     }
 
