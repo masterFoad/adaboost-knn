@@ -151,7 +151,7 @@ public class KNN {
                  * setting the distance according to the weight of the sample
                  */
 
-                double curDis = (Math.sqrt(sum) * old.getWeight());
+                double curDis = (Math.sqrt(sum));
                 insertPriorityK(distances, curDis, old);
             }
         }

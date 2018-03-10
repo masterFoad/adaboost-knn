@@ -91,10 +91,14 @@ public class ADABOOST {
                     System.out.println((trainingIteration+1)+" Step of "+classifiers.size());
                     resetModelErrors();
                     trainingIteration++;
-                    if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e -> e.getErrorRate() >= 1 - (1 / K))) {
+                    if ((1 - ((overallErrorRate / (double) tuples.length))) == 0.0 || priorityKNN.stream().allMatch(e -> e.getErrorRate() >= 1.0 - (1.0 / K))) {
                         break;
                     }
                     priorityKNN.clear();
+                    System.out.println("**********");
+                    double testingError = runOnTestingSet(numberOfFolds);
+                    System.out.println("test "+finalModel+" "+testingError+" correct: "+(1-testingError));
+                    System.out.println("**********");
                 }
                 double testingError = runOnTestingSet(numberOfFolds);
                 System.out.println("test "+finalModel.size()+" "+testingError+" correct: "+(1-testingError));
@@ -102,8 +106,9 @@ public class ADABOOST {
                 if (!SetStarter.nextFold()) {
                     break;
                 }
+                System.out.println(finalModel);
+                finalModel.clear();
             }
-            System.out.println(finalModel);
             System.out.println("error average of tests "+saveErrorOfTests.stream().mapToDouble(e -> e.doubleValue()).average().getAsDouble());
             System.out.println("correct average of tests "+(1-saveErrorOfTests.stream().mapToDouble(e -> e.doubleValue()).average().getAsDouble()));
 
@@ -179,10 +184,10 @@ public class ADABOOST {
 
 
             CompletableFuture.allOf(futures).join();
-                    for (int k = 0; k < tuples.length; k++) {
-                        classifiers.get(index).init(tuples, tuples[k]);
-
-                    }
+//                    for (int k = 0; k < tuples.length; k++) {
+//                        classifiers.get(index).init(tuples, tuples[k]);
+//                    }
+//            System.out.println(classifiers.get(j).getNum()+" "+classifiers.get(j).getErrorRate());
             priorityKNN.add(classifiers.get(j));
 //            index++;
         }
@@ -197,7 +202,7 @@ public class ADABOOST {
      * @param alpha
      */
     private void addToFinalModelH(KNN knn, double alpha){
-        FinalModel fm = new FinalModel(knn.getClone() , alpha);
+        FinalModel fm = new FinalModel(knn.getClone() , alpha, knn.getErrorRate());
         finalModel.add(fm);
     }
 
@@ -236,7 +241,6 @@ public class ADABOOST {
     public synchronized int checkModelValidity(Tuple t, ArrayList<Pair<Integer, Pair<Tuple, Integer>>> predicted, int numberOfFolds) {
 
         int index = classifyTuple(t);
-
         predicted.add(new Pair<>(numberOfFolds, new Pair<>(t, index)));
 
         if (t.getClassNum() != index) {
@@ -294,7 +298,7 @@ public class ADABOOST {
         int start = 0;
         int finish = 1;
         while (finish <= tuples.length) {
-            runnables.add(RunnableFactory.create(start, finish, knn, set));
+            runnables.add(RunnableFactory.create(start, finish, knn, set, K));
 
             if (finish == tuples.length)
                 break;
@@ -345,10 +349,12 @@ public class ADABOOST {
     private class FinalModel {
         private KNN knn;
         private double alpha;
+        private double errorRate;
 
-        public FinalModel(KNN knn, double alpha) {
+        public FinalModel(KNN knn, double alpha, double errorRate) {
             this.knn = knn;
             this.alpha = alpha;
+            this.errorRate = errorRate;
         }
 
         @Override
@@ -357,6 +363,7 @@ public class ADABOOST {
                     "knn=" + knn.getNum() +
                     "k=" + this.knn.getK_size() +
                     ", alpha=" + alpha +
+                    ", errorRate=" + errorRate +
                     '}';
         }
     }
@@ -368,57 +375,6 @@ public class ADABOOST {
         }
     }
 
-//    public StringBuilder getFinalReport() {
-//        StringBuilder report = new StringBuilder();
-//
-//        report.append("Final Report:");
-//        report.append(System.getProperty("line.separator"));
-//        report.append("Training data size: " + SetStarter.getTrainingSet().length)
-//                .append(System.getProperty("line.separator"));
-//        report.append("Final Model: ").append(System.getProperty("line.separator")).append(getFinalModel().toString());
-//        report.append(System.getProperty("line.separator"));
-//        report.append("Number of correctly classified training data class 1:").append(System.getProperty("line.separator"));
-//        report.append(finalResultsForTraining.stream().filter(e -> e.getValue().getClassNum() == 1 && e.getKey().getClassNum() == e.getValue().getClassNum()).count());
-//        report.append(System.getProperty("line.separator"));
-//        report.append("Number of incorrectly classified training data class 1:").append(System.getProperty("line.separator"));
-//        report.append(finalResultsForTraining.stream().filter(e -> e.getValue().getClassNum() == 1 && e.getKey().getClassNum() != e.getValue().getClassNum()).count());
-//
-//
-//        report.append(System.getProperty("line.separator"));
-//        report.append("Number of correctly classified training data class 2:").append(System.getProperty("line.separator"));
-//        report.append(finalResultsForTraining.stream().filter(e -> e.getValue().getClassNum() == 2 && e.getKey().getClassNum() == e.getValue().getClassNum()).count());
-//        report.append(System.getProperty("line.separator"));
-//        report.append("Number of incorrectly classified training data class 2:").append(System.getProperty("line.separator"));
-//        report.append(finalResultsForTraining.stream().filter(e -> e.getValue().getClassNum() == 2 && e.getKey().getClassNum() != e.getValue().getClassNum()).count());
-//
-//        report.append(System.getProperty("line.separator"));
-//        report.append("Training Error Rate: " + (1 - getOverallErrorRate() / (double) SetStarter.getTrainingSet().length));
-//
-//        report.append(System.getProperty("line.separator"));
-//        report.append("Testing: ");
-//        report.append(System.getProperty("line.separator"));
-//        report.append("testing data size: " + SetStarter.getTestingSet().length)
-//                .append(System.getProperty("line.separator"));
-//        report.append("Number of correctly classified testing data class 1:").append(System.getProperty("line.separator"));
-//        report.append(finalResultsForTesting.stream().filter(e -> e.getValue().getClassNum() == 1 && e.getKey().getClassNum() == e.getValue().getClassNum()).count());
-//        report.append(System.getProperty("line.separator"));
-//        report.append("Number of incorrectly classified testing data class 1:").append(System.getProperty("line.separator"));
-//        report.append(finalResultsForTesting.stream().filter(e -> e.getValue().getClassNum() == 1 && e.getKey().getClassNum() != e.getValue().getClassNum()).count());
-//
-//
-//        report.append(System.getProperty("line.separator"));
-//        report.append("Number of correctly classified testing data class 2:").append(System.getProperty("line.separator"));
-//        report.append(finalResultsForTesting.stream().filter(e -> e.getValue().getClassNum() == 2 && e.getKey().getClassNum() == e.getValue().getClassNum()).count());
-//        report.append(System.getProperty("line.separator"));
-//        report.append("Number of incorrectly classified testing data class 2:").append(System.getProperty("line.separator"));
-//        report.append(finalResultsForTesting.stream().filter(e -> e.getValue().getClassNum() == 2 && e.getKey().getClassNum() != e.getValue().getClassNum()).count());
-//
-//        report.append(System.getProperty("line.separator"));
-//        report.append("Testing Error Rate: " + (1 - countTrue / (double) SetStarter.getTestingSet().length));
-//
-//
-//        return report;
-//    }
 
 
     /**
@@ -430,12 +386,12 @@ public class ADABOOST {
         }
 
 
-        public static Runnable create(int start, int finish, KNN knn, Tuple[] set) {
+        public static Runnable create(int start, int finish, KNN knn, Tuple[] set, double K) {
 
             return () -> {
                 for (int k = start; k < finish; k++) {
+                    if(knn.getErrorRate()<(double)1 - (1 / K))
                     knn.init(set, set[k]);
-
                 }
             };
 

@@ -87,9 +87,9 @@ public class GenericReader {
     public static Tuple createTuple(String[] metadata) {
         double[] tuples = new double[metadata.length - 1];
         for (int i = 0; i < metadata.length - 1; i++) {
-            tuples[i] = Double.parseDouble(metadata[i]);
+            tuples[i] = Double.parseDouble(metadata[i].trim());
         }
-        return new Tuple(tuples, Integer.parseInt(metadata[metadata.length - 1]));
+        return new Tuple(tuples, Integer.parseInt(metadata[metadata.length - 1].trim()));
     }
 
 }

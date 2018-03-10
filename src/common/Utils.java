@@ -5,7 +5,7 @@ import lab.ConfusionMatrix;
 public class Utils {
 
 
-    private Utils(){};
+    private Utils(){}
 
     public static double[][] EXPAND = {{3,0},{0,3}};
 

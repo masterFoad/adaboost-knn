@@ -18,9 +18,9 @@ public class Main {
 
 
         long startTime = System.currentTimeMillis();
-//        AdaboostExperiment exp1 = new AdaboostExperiment("/weights1.csv", "/data1.csv", 2, 0.66);
-//        AdaboostExperiment exp1 = new AdaboostExperiment("/weights2.csv", "/data2.csv", 2, 0.66);
-        AdaboostExperiment exp1 = new AdaboostExperiment("/weights3.csv", "/data3.csv", 3, 0.66);
+//        AdaboostExperiment exp1 = new AdaboostExperiment("/weights1.csv", "/data1.csv", 2, 0.9);
+        AdaboostExperiment exp1 = new AdaboostExperiment("/weights2.csv", "/data2.csv", 2, 0.96);
+//        AdaboostExperiment exp1 = new AdaboostExperiment("/weights3.csv", "/data3.csv", 3, 0.9);
 
 
         System.out.println("Report for data3 using 66% training data nad 34% testing, 2 folds CV");
@@ -36,13 +36,13 @@ public class Main {
         for (Lab.Result r :
                 l.getAllResults()) {
             System.out.println(r);
-            System.out.println(l.getAveragesForTraining2classes(r));
+            System.out.println(l.getAveragesForTraining3classes(r));
         }
 
         for (Lab.Result r :
                 l.getAllResultsForTesting()) {
             System.out.println(r);
-            System.out.println(l.getAveragesForTest2Classes(r));
+            System.out.println(l.getAveragesForTesting3classes(r));
         }
 
         long endTime = System.currentTimeMillis();
